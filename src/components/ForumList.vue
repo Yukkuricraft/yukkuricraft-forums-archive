@@ -16,10 +16,7 @@
       <template v-if="forum.subforums && forum.subforums.length">
         <strong>Subforums:</strong>
         <b-list-group horizontal>
-          <b-list-group-item
-            v-for="subforum in forum.subforums"
-            :key="'forum-' + forum.title + '-' + subforum.title"
-          >
+          <b-list-group-item v-for="subforum in forum.subforums" :key="'forum-' + forum.title + '-' + subforum.title">
             <router-link
               :to="{
                 name: 'forum',
@@ -66,6 +63,6 @@ export default {
     formatNumber(num) {
       return format.format(num)
     },
-  }
+  },
 }
 </script>

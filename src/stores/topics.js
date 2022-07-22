@@ -87,15 +87,15 @@ export default {
     },
     getCurrentTopic(state) {
       return state.currentTopicLoader.data.topic
-    }
+    },
   },
   actions: {
     async loadTopics({ dispatch }, args) {
       await dispatch('topicsLoader/loadData', args)
       await dispatch('stickyLoader/loadData', args)
     },
-    async loadCurrentTopic({dispatch}, args) {
+    async loadCurrentTopic({ dispatch }, args) {
       await dispatch('currentTopicLoader/loadData', args)
-    }
+    },
   },
 }

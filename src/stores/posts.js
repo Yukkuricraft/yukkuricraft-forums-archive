@@ -1,5 +1,5 @@
-import waiterLoader from './waiterLoader'
 import isEqual from 'lodash/isEqual'
+import waiterLoader from './waiterLoader'
 
 export default {
   namespaced: true,

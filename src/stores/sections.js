@@ -238,7 +238,7 @@ const ycSections = [
 export default {
   namespaced: true,
   modules: {
-    loader: waiterLoader("sections")(
+    loader: waiterLoader('sections')(
       () => [],
       (data) => data.length,
       () => new Promise((resolve) => resolve(ycSections))

@@ -9,15 +9,12 @@
 
     <h1>Yukkuricraft</h1>
 
-    <forum-section
-      v-if="sections.length"
-      v-for="section in sections"
-      :key="'section-' + section.slug"
-      :section="section"
-      :heading-level="2"
-    />
+    <template v-for="section in sections">
+      <forum-section v-if="sections.length" :key="'section-' + section.slug" :section="section" :heading-level="2" />
+    </template>
     <template v-else>
-      <div>Waiting</div> <!-- TODO: Handle 5xx errors -->
+      <div>Waiting</div>
+      <!-- TODO: Handle 5xx errors -->
     </template>
   </div>
 </template>
@@ -32,7 +29,7 @@ export default {
     ForumSection,
   },
   computed: {
-    ...mapGetters('sections', {sections: "getSections"}),
+    ...mapGetters('sections', { sections: 'getSections' }),
   },
   async created() {
     await this.loadSections()

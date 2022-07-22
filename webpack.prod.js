@@ -15,9 +15,7 @@ module.exports = (env, options) => {
     plugins: [
       new MiniCssExtractPlugin(),
       new CopyPlugin({
-        patterns: [
-          { from: 'src/modernizr-custom.js', to: 'modernizr-custom.js' },
-        ],
+        patterns: [{ from: 'src/modernizr-custom.js', to: 'modernizr-custom.js' }],
       }),
       // new BundleAnalyzerPlugin()
     ],

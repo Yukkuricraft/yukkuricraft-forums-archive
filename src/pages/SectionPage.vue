@@ -7,13 +7,10 @@
       :url="'https://old-forums.yukkuricraft.net/forum/' + sectionSlug"
     />
 
-    <forum-section
-      v-if="getSections.length"
-      :section="section"
-      :heading-level="1"
-    />
+    <forum-section v-if="getSections.length" :section="section" :heading-level="1" />
     <template v-else>
-      <div>Waiting</div> <!-- TODO: Handle 404 -->
+      <div>Waiting</div>
+      <!-- TODO: Handle 404 -->
     </template>
   </div>
 </template>
@@ -30,8 +27,8 @@ export default {
   props: {
     sectionSlug: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     ...mapGetters('sections', ['getSections']),

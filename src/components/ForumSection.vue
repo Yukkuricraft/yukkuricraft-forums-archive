@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-link :to="{name: 'section', params: { sectionSlug: section.slug }}">
+    <router-link :to="{ name: 'section', params: { sectionSlug: section.slug } }">
       <configurable-heading :level="headingLevel" class="h3">{{ section.title }}</configurable-heading>
     </router-link>
     <forum-list :forums="section.forums" :forum-path="[section.slug]" :heading-level="headingLevel"></forum-list>
@@ -8,8 +8,8 @@
 </template>
 
 <script>
-import ConfigurableHeading from "./ConfigurableHeading";
-import ForumList from "./ForumList";
+import ConfigurableHeading from './ConfigurableHeading'
+import ForumList from './ForumList'
 
 export default {
   components: {
@@ -19,7 +19,7 @@ export default {
   props: {
     section: {
       type: Object,
-      required: true
+      required: true,
     },
     headingLevel: {
       type: Number,

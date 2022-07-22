@@ -12,20 +12,20 @@ export function createRouter() {
     routes: [
       {
         path: '/',
-				alias: '/forum',
+        alias: '/forum',
         name: 'home',
         component: HomePage,
         pathToRegexpOptions: { strict: true },
       },
-			{
-				path: '/forum/:sectionSlug',
-				name: 'section',
-				component: SectionPage,
-        props: true,
-				pathToRegexpOptions: { strict: true },
-			},
       {
-        path: `/forum/:forumPathP([A-Za-z][\\w\\-]*|\\d+[page]+)+`, //Hacky way around breaking groups
+        path: '/forum/:sectionSlug',
+        name: 'section',
+        component: SectionPage,
+        props: true,
+        pathToRegexpOptions: { strict: true },
+      },
+      {
+        path: `/forum/:forumPathP([A-Za-z][\\w\\-]*|\\d+[page]+)+`, // Hacky way around breaking groups
         name: 'forum',
         component: ForumPage,
         props: true,

@@ -31,22 +31,22 @@ const preferredLanguage = typeof window !== 'undefined' ? window.navigator.langu
 const usedLocale = supportedLocales.includes(preferredLanguage) ? preferredLanguage : 'en'
 
 export function createApp(extraSettings) {
-	const i18n = new VueI18n({
-		locale: usedLocale,
-	})
+  const i18n = new VueI18n({
+    locale: usedLocale,
+  })
 
-	const router = createRouter()
-	const store = createStore()
+  const router = createRouter()
+  const store = createStore()
 
-	sync(store, router)
+  sync(store, router)
 
-	const app = new Vue({
-		...extraSettings,
-		render: (createElement) => createElement(App),
-		router,
-		store,
-		i18n,
-	})
+  const app = new Vue({
+    ...extraSettings,
+    render: (createElement) => createElement(App),
+    router,
+    store,
+    i18n,
+  })
 
-	return { app, router, store }
+  return { app, router, store }
 }

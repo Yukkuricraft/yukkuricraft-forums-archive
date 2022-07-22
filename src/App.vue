@@ -5,7 +5,8 @@
 
       <div class="site-content">
         <b-container class="container-pad">
-          <b-breadcrumb v-if="breadcrumbItems.length" :items="breadcrumbItems" /> <!-- TODO: Seems to break with 4 items or more -->
+          <b-breadcrumb v-if="breadcrumbItems.length" :items="breadcrumbItems" />
+          <!-- TODO: Seems to break with 4 items or more -->
           <router-view></router-view>
         </b-container>
       </div>
@@ -25,14 +26,14 @@
 <script>
 import { mapActions, mapGetters } from 'vuex'
 
-import {BContainer, BBreadcrumb} from "bootstrap-vue"
-import Navbar from "./components/Navbar";
+import { BContainer, BBreadcrumb } from 'bootstrap-vue'
+import Navbar from './components/Navbar'
 
 export default {
   components: {
     Navbar,
     BContainer,
-    BBreadcrumb
+    BBreadcrumb,
   },
   computed: {
     ...mapGetters('sections', ['getSections']),
@@ -51,17 +52,17 @@ export default {
       const res = []
       res.push({
         text: 'Home',
-        to: { name: 'home' }
+        to: { name: 'home' },
       })
 
       const sectionSlug = path.shift()
-      const section = this.getSections?.find(section => section.slug === sectionSlug)
+      const section = this.getSections?.find((section) => section.slug === sectionSlug)
       res.push({
         text: section?.title ?? sectionSlug,
-        to: { name: 'section', params: { sectionSlug } }
+        to: { name: 'section', params: { sectionSlug } },
       })
 
-      let forumPath = [sectionSlug]
+      const forumPath = [sectionSlug]
       let forums = section?.forums
       while (path.length) {
         const forumSlug = path.shift()
@@ -70,17 +71,17 @@ export default {
         if (/^\d+/gm.test(forumSlug)) {
           res.push({
             text: this.getCurrentTopic?.title ?? forumSlug,
-            to: { name: 'posts', params: { forumPathP: [...forumPath] }}
+            to: { name: 'posts', params: { forumPathP: [...forumPath] } },
           })
           break
         }
 
-        const forum = forums?.find(forum => forum.slug === forumSlug)
+        const forum = forums?.find((forum) => forum.slug === forumSlug)
         forums = forum?.subforums
 
         res.push({
           text: forum?.title ?? forumSlug,
-          to: { name: 'forum', params: { forumPathP: [...forumPath] }}
+          to: { name: 'forum', params: { forumPathP: [...forumPath] } },
         })
       }
 
@@ -92,6 +93,6 @@ export default {
   },
   methods: {
     ...mapActions('sections', ['loadSections']),
-  }
+  },
 }
 </script>

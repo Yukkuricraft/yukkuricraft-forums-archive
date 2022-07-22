@@ -11,9 +11,7 @@ module.exports = (env, options) => {
     devtool: 'inline-source-map',
     plugins: [
       new CopyPlugin({
-        patterns: [
-          { from: 'src/modernizr-custom.js', to: 'modernizr-custom.js' },
-        ],
+        patterns: [{ from: 'src/modernizr-custom.js', to: 'modernizr-custom.js' }],
       }),
       // new BundleAnalyzerPlugin()
     ],
