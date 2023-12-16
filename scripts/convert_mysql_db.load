@@ -1,0 +1,4 @@
+LOAD DATABASE
+		FROM mysql://root:password@localhost/yc_forum_archive
+		INTO pgsql://yc_forums@localhost/yc_forums_archive
+	ALTER SCHEMA 'yc_forum_archive' RENAME TO 'public';
