@@ -1,0 +1,40 @@
+{
+  "name": "@yukkuricraft-forums-archive/backend",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts ",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint",
+    "fixlint": "eslint --fix"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.3",
+    "@hono/zod-validator": "^0.7.0",
+    "@prisma/client": "^6.9.0",
+    "content-disposition": "^0.5.4",
+    "dotenv": "^16.5.0",
+    "getenv": "^2.0.0",
+    "hono": "^4.7.11",
+    "kysely": "^0.28.2",
+    "mime-types": "^3.0.1",
+    "prisma-extension-kysely": "^3.0.0",
+    "prisma-kysely": "^1.8.0",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^3.25.51"
+  },
+  "devDependencies": {
+    "@types/content-disposition": "^0",
+    "@types/getenv": "^1.0.3",
+    "@types/mime-types": "^3",
+    "@types/node": "^22.15.29",
+    "@yukkuricraft-forums-archive/eslint-config": "workspace:*",
+    "eslint": "^9.28.0",
+    "prisma": "^6.9.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "yarn@4.9.1"
+}

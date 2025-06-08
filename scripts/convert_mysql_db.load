@@ -1,4 +1,6 @@
 LOAD DATABASE
-		FROM mysql://root:password@localhost/yc_forum_archive
-		INTO pgsql://yc_forums@localhost/yc_forums_archive
-	ALTER SCHEMA 'yc_forum_archive' RENAME TO 'public';
+		FROM mysql://root:password@172.30.128.1/yc_forum_archive
+		INTO pgsql://postgres:password@172.30.128.1/yc_forums_archive
+
+	WITH prefetch rows = 500, batch rows = 500, max parallel create index = 1;
+

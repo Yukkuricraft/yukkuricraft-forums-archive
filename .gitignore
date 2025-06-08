@@ -1,13 +1,32 @@
-vendors*
-not-really-vendors*
-prev_known_ip
-Config.php
+# Deps
+node_modules/
 
-# Info page
-node_modules
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+.turbo
+backend/logs
+
+frontend/dist
+backend/dist
+
+# env
+.env
+.env.production
 
 # IDEA
 .idea
 
-generated
-dist/sitemap.xml
+.vscode
+
+#Scala
+.scala-build
+
+# misc
+.DS_Store

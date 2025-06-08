@@ -1,0 +1,271 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["typedSql", "views", "relationJoins", "fullTextSearchPostgres"]
+}
+
+generator kysely {
+  provider  = "prisma-kysely"
+  output    = "./src/generated/kysely"
+  camelCase = true
+}
+
+model UserGroup {
+  id        Int     @id
+  title     String
+  userTitle String  @map("user_title")
+  color     String?
+
+  User User[]
+
+  @@map("user_group")
+}
+
+model Avatar {
+  id       Int    @id
+  filename String
+  data     Bytes
+  width    Int
+  height   Int
+  filesize BigInt
+
+  thumbnailData   Bytes? @map("thumbnail_data")
+  thumbnailWidth  Int    @map("thumbnail_width")
+  thumbnailHeight Int    @map("thumbnail_height")
+
+  extension String
+
+  User User[]
+
+  @@map("avatar")
+}
+
+model User {
+  id          Int       @id
+  userGroupId Int       @unique @map("user_group_id")
+  slug        String    @unique
+  name        String    @unique
+  title       String?
+  createdAt   DateTime? @map("created_at")
+  postCount   Int       @map("post_count")
+  signature   String?
+  avatarId    Int?      @map("avatar")
+
+  //Profile fields
+  biography  String?
+  location   String?
+  interests  String?
+  occupation String?
+  inGameName String? @map("in_game_name")
+
+  UserGroup       UserGroup         @relation(fields: [userGroupId], references: [id])
+  Avatar          Avatar?           @relation(fields: [avatarId], references: [id])
+  Topics          Topic[]
+  TopicTags       TopicTag[]
+  Posts           Post[]
+  PostEditHistory PostEditHistory[]
+  PostPollVote    PostPollVote[]
+
+  @@map("user")
+}
+
+model Forum {
+  id           Int     @id
+  parentId     Int?    @map("parent_id")
+  slug         String
+  title        String
+  description  String?
+  displayorder Int
+  topicsCount  Int     @map("topics_count")
+  postsCount   Int     @map("posts_count")
+
+  Parent   Forum?         @relation("Hierarchy", fields: [parentId], references: [id])
+  Children Forum[]        @relation("Hierarchy")
+  Topics   Topic[]
+  FullSlug ForumFullSlug?
+
+  @@unique([parentId, slug])
+  @@unique([parentId, title])
+  @@map("forum")
+}
+
+model Topic {
+  id        Int       @id
+  forumId   Int       @map("forum_id")
+  creatorId Int?      @map("creator_id")
+  createdAt DateTime  @map("created_at")
+  slug      String
+  title     String
+  sticky    Boolean
+  deletedAt DateTime? @map("deleted_at")
+  hidden    Boolean
+  postCount Int       @map("post_count")
+
+  Forum   Forum @relation(fields: [forumId], references: [id])
+  Creator User? @relation(fields: [creatorId], references: [id])
+
+  RedirectTo    TopicRedirect?   @relation("RedirectFrom")
+  RedirectsFrom TopicRedirect[]  @relation("RedirectTo")
+  TopicTags     TopicTag[]
+  Posts         Post[]
+  LastPost      LastPostInTopic?
+
+  @@index([forumId, slug])
+  @@map("topic")
+}
+
+model TopicRedirect {
+  topicId      Int @id @map("topic_id")
+  redirectToId Int @map("redirect_to_id")
+
+  Topic      Topic @relation("RedirectFrom", fields: [topicId], references: [id])
+  RedirectTo Topic @relation("RedirectTo", fields: [redirectToId], references: [id])
+
+  @@map("topic_redirect")
+}
+
+model Tag {
+  id   Int    @id
+  text String
+}
+
+model TopicTag {
+  topicId   Int      @map("topic_id")
+  tagId     Int      @map("tag_id")
+  creatorId Int?
+  createdAt DateTime
+
+  Topic   Topic @relation(fields: [topicId], references: [id])
+  Creator User? @relation(fields: [creatorId], references: [id])
+
+  @@id([topicId, tagId])
+  @@map("topic_tag")
+}
+
+model Post {
+  id        Int                     @id
+  topicId   Int                     @map("topic_id")
+  creatorId Int?                    @map("creator_id")
+  createdAt DateTime                @map("created_at")
+  updatedAt DateTime                @map("updated_at")
+  content   String
+  deletedAt DateTime?               @map("deleted_at")
+  hidden    Boolean
+
+  Topic           Topic             @relation(fields: [topicId], references: [id])
+  Creator         User?             @relation(fields: [creatorId], references: [id])
+  EditHistory     PostEditHistory[]
+  PostPoll        PostPoll?
+  PostLink        PostLink[]
+  LastPostInTopic LastPostInTopic?
+  PostIdx         PostIdx?
+  LastPostEdit    LastPostEdit?
+
+  @@map("post")
+}
+
+model PostEditHistory {
+  id        Int      @id
+  postId    Int      @map("post_id")
+  creatorId Int?     @map("creator_id")
+  createdAt DateTime @map("created_at")
+  reason    String
+  original  Boolean
+  text      String
+
+  Post       Post          @relation(fields: [postId], references: [id])
+  Creator    User?         @relation(fields: [creatorId], references: [id])
+  IsLastEdit LastPostEdit?
+
+  @@map("post_edit_history")
+}
+
+model PostPoll {
+  postId   Int     @id @map("post_id")
+  multiple Boolean
+
+  Post    Post             @relation(fields: [postId], references: [id])
+  Options PostPollOption[]
+
+  @@map("post_poll")
+}
+
+model PostPollOption {
+  id     Int    @id
+  postId Int    @map("post_id")
+  title  String
+
+  PostPoll PostPoll       @relation(fields: [postId], references: [postId])
+  Votes    PostPollVote[]
+
+  @@map("post_poll_option")
+}
+
+model PostPollVote {
+  id           Int      @id
+  pollOptionId Int      @map("poll_option_id")
+  userId       Int      @map("user_id")
+  createdAt    DateTime @map("created_at")
+
+  Option PostPollOption @relation(fields: [pollOptionId], references: [id])
+  User   User           @relation(fields: [userId], references: [id])
+
+  @@map("post_poll_vote")
+}
+
+model PostLink {
+  postId   Int    @id @map("post_id")
+  url      String
+  urlTitle String @map("url_title")
+
+  Post Post @relation(fields: [postId], references: [id])
+}
+
+model Smilie {
+  id    Int    @id
+  title String
+  text  String
+  path  String
+}
+
+view LastPostInTopic {
+  topicId Int @unique @map("topic_id")
+  postId  Int @unique @map("post_id")
+
+  Topic Topic @relation(fields: [topicId], references: [id])
+  Post  Post  @relation(fields: [postId], references: [id])
+
+  @@map("last_post_in_topic")
+}
+
+view PostIdx {
+  id  Int @unique
+  idx Int
+
+  Post Post @relation(fields: [id], references: [id])
+
+  @@map("post_idx")
+}
+
+view LastPostEdit {
+  postId     Int @unique @map("post_id")
+  postEditId Int @unique @map("post_edit_id")
+
+  Post     Post            @relation(fields: [postId], references: [id])
+  PostEdit PostEditHistory @relation(fields: [postEditId], references: [id])
+
+  @@map("last_edit_for_post")
+}
+
+view ForumFullSlug {
+  id   Int      @unique
+  slug String[]
+
+  Forum Forum @relation(fields: [id], references: [id])
+
+  @@map("forum_full_slug")
+}

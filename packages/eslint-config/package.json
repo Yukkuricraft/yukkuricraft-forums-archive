@@ -1,0 +1,17 @@
+{
+  "name": "@yukkuricraft-forums-archive/eslint-config",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./base": "./eslint.config.js"
+  },
+  "dependencies": {
+    "@types/eslint": "^9.6.1",
+    "eslint": "^9.28.0",
+    "eslint-config-turbo": "^2.5.4",
+    "eslint-plugin-security": "^3.0.1",
+    "neostandard": "^0.12.1",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "yarn@4.9.1"
+}
