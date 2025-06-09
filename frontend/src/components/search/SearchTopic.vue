@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Topic } from '@yukkuricraft-forums-archive/backend/dist/routes/topic.ts'
-import type { SearchTopic as SearchTopicType } from '@yukkuricraft-forums-archive/backend/dist/routes/search.ts'
+import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
+import type { SearchTopic as SearchTopicType } from '@yukkuricraft-forums-archive/types/search'
 import TopicSummary from '@/components/TopicSummary.vue'
 import { computed } from 'vue'
 

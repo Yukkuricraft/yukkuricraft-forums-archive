@@ -1,21 +1,11 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@yukkuricraft-forums-archive/database'
 import contentDisposition from 'content-disposition'
 import * as mime from 'mime-types'
 import AppError from '../AppError.js'
-
-const userInclude = {
-  UserGroup: {
-    select: {
-      userTitle: true,
-      color: true,
-    },
-  },
-} satisfies Prisma.UserInclude
-
-export type User = Prisma.UserGetPayload<{include: typeof userInclude}>
+import { userInclude } from '@yukkuricraft-forums-archive/types/user'
 
 const app = new Hono()
   .get('dumpAllAvatars', async (c) => {

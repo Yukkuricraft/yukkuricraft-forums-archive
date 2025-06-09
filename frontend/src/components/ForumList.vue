@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ForumTree } from '@yukkuricraft-forums-archive/backend/dist/routes/forum'
+import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import ConfigurableHeading from './ConfigurableHeading.vue'
 
 const format = new Intl.NumberFormat()

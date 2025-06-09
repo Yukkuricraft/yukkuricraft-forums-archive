@@ -1,30 +1,21 @@
-import { createApp } from 'vue'
+import { createSSRApp } from 'vue'
 import { createPinia } from 'pinia'
-import { createHead } from '@unhead/vue/client'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 import './scss/app.scss'
-
-import './fontAwesomeLibrary'
 
 import App from './App.vue'
 import { createYcForumsRouter } from './router'
 
 export function createYcForumsApp() {
-  const app = createApp(App)
+  const app = createSSRApp(App)
   const router = createYcForumsRouter()
-  const head = createHead()
+  const pinia = createPinia()
 
   app.component('FontAwesomeIcon', FontAwesomeIcon)
 
-  app.use(createPinia())
+  app.use(pinia)
   app.use(router)
-  app.use(head)
 
-   
-  return { app, router, head }
+  return { app, router, pinia }
 }
-
-const { app, router } = createYcForumsApp()
-
-router.isReady().then(() => app.mount('#app')).catch((e) => console.error(e))

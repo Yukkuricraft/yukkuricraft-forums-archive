@@ -7,6 +7,7 @@ import type { BBobCoreTagNodeTree, BBobPluginFunction, NodeContent, TagNodeObjec
 import { defineComponent } from 'vue'
 import BbcodeQuote from '@/components/bbcode/BbcodeQuote.vue'
 import { parse } from '@bbob/parser'
+import { decodeHtmlEntities } from '@/htmlEntities.ts'
 
 function attr(attrs: Record<string, unknown> | undefined) {
   const entries = Object.entries(attrs ?? {})
@@ -419,12 +420,7 @@ const plugins = [
   lineBreakPlugin(),
 ]
 
-//https://stackoverflow.com/a/7394787
-function decodeHtmlEntities(str: string): string {
-  const txt = document.createElement('textarea')
-  txt.innerHTML = str
-  return txt.value
-}
+
 
 export const BbcodeRenderer = defineComponent({
   props: {

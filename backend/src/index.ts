@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import getenv from 'getenv'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@yukkuricraft-forums-archive/database/client'
 import kyselyExtension from 'prisma-extension-kysely'
 import { CamelCasePlugin, Kysely, PostgresAdapter, PostgresIntrospector, PostgresQueryCompiler } from 'kysely'
-import type { DB } from './generated/kysely/types.js'
+import type { DB } from '@yukkuricraft-forums-archive/database/kysely'
 
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
@@ -23,33 +23,25 @@ import userRoutes from './routes/user.js'
 import miscRoutes from './routes/misc.js'
 import interopRoutes from './routes/interop.js'
 import searchRoutes from './routes/search.js'
+import ssrRoutes from './routes/frontend.js'
 
-const [prisma, prismaWithKysely] = (() => {
-  const prisma = new PrismaClient({
-    log: [
-      { level: 'error', emit: 'event' },
-      { level: 'warn', emit: 'event' },
-      { level: 'query', emit: 'stdout' },
-    ],
-  })
-  prisma.$on('error', (event) => rootLogger.error(event))
-  prisma.$on('warn', (event) => rootLogger.warn(event))
+prisma.$on('error', (event) => rootLogger.error(event))
+prisma.$on('warn', (event) => rootLogger.warn(event))
 
-  return [prisma, prisma.$extends(
-    kyselyExtension({
-      kysely: (driver) =>
-        new Kysely<DB>({
-          dialect: {
-            createDriver: () => driver,
-            createAdapter: () => new PostgresAdapter(),
-            createIntrospector: (db) => new PostgresIntrospector(db),
-            createQueryCompiler: () => new PostgresQueryCompiler(),
-          },
-          plugins: [new CamelCasePlugin()],
-        }),
-    }),
-  )]
-})()
+const prismaWithKysely = prisma.$extends(
+  kyselyExtension({
+    kysely: (driver) =>
+      new Kysely<DB>({
+        dialect: {
+          createDriver: () => driver,
+          createAdapter: () => new PostgresAdapter(),
+          createIntrospector: (db) => new PostgresIntrospector(db),
+          createQueryCompiler: () => new PostgresQueryCompiler(),
+        },
+        plugins: [new CamelCasePlugin()],
+      }),
+  }),
+)
 
 export type PrismaClientWithKysely = typeof prismaWithKysely
 
@@ -78,6 +70,7 @@ app.route('/api', userRoutes)
 app.route('/api', miscRoutes)
 app.route('/api', searchRoutes)
 app.route('/', interopRoutes)
+app.route('/', ssrRoutes)
 
 app.onError((err, c) => {
   if ('getResponse' in err) {
@@ -91,7 +84,7 @@ app.onError((err, c) => {
 
 // export type AppType = typeof app
 
-serve(
+const server = serve(
   {
     fetch: app.fetch,
     port: getenv.int('HTTP_PORT', 3000),
@@ -101,3 +94,17 @@ serve(
     rootLogger.info(`Server is running on http://localhost:${info.port}`)
   },
 )
+
+process.on('SIGINT', () => {
+  server.close()
+  process.exit(0)
+})
+process.on('SIGTERM', () => {
+  server.close((err) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+    process.exit(0)
+  })
+})

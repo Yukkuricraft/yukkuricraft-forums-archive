@@ -13,12 +13,15 @@
       ></ForumList>
     </div>
 
-    <h2 v-if="stickyTopics.length" class="title is-4 mt-3">Sticky topics</h2>
-    <div v-show="showSpinner(stickyTopicsLoading, stickyTopicsRequestedAt)" style="text-align: center; margin-top: 10vh; margin-bottom: 10vh">
+    <h2 v-if="topicStore.stickyTopics.length" class="title is-4 mt-3">Sticky topics</h2>
+    <div
+      v-show="showSpinner(topicStore.stickyTopicsEvaluating, topicStore.stickyTopicsRequestedAt)"
+      style="text-align: center; margin-top: 10vh; margin-bottom: 10vh"
+    >
       <FontAwesomeIcon size="6x" spin :icon="faSpinner" />
     </div>
     <Topic
-      v-for="topic in stickyTopics"
+      v-for="topic in topicStore.stickyTopics"
       :key="'stickytopic-' + topic.title"
       :topic="topic"
       :section-slug="sectionSlug"
@@ -26,17 +29,25 @@
     />
 
     <h2 class="title is-4 mt-3">Topics</h2>
-    <div v-show="showSpinner(topicsLoading, stickyTopicsRequestedAt)" style="text-align: center; margin-top: 10vh; margin-bottom: 10vh">
+    <div
+      v-show="showSpinner(topicStore.topicsEvaluating, topicStore.stickyTopicsRequestedAt)"
+      style="text-align: center; margin-top: 10vh; margin-bottom: 10vh"
+    >
       <FontAwesomeIcon size="6x" spin :icon="faSpinner" />
     </div>
     <Topic
-      v-for="topic in topics"
+      v-for="topic in topicStore.topics"
       :key="'topic-' + topic.title"
       :section-slug="sectionSlug"
       :forum-path="forumPath"
       :topic="topic"
     />
-    <Pagination :current-page="page" :page-count="pageCount(forum.topicsCount - stickyTopics.length, 10)" :link-gen="pageLinkGen" :shown-pages="9" />
+    <Pagination
+      :current-page="page"
+      :page-count="pageCount(forum.topicsCount - topicStore.stickyTopics.length, 10)"
+      :link-gen="pageLinkGen"
+      :shown-pages="9"
+    />
   </div>
   <div v-else>
     Waiting
@@ -45,21 +56,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onServerPrefetch, watch } from 'vue'
 import ForumList from '../components/ForumList.vue'
 import Pagination from '../components/AutoPagination.vue'
 import { pageFromPath } from '../pathUtils'
 import Topic from '../components/TopicSummary.vue'
-import { type TopicsRequestParams, useForumForums, useStickyTopics, useTopics } from '../dataComposables'
 import { pageCount } from '@/util/pageCount.ts'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useTopicsStore } from '@/stores/topics.ts'
+import { useForumsStore } from '@/stores/forums.ts'
 
 const props = defineProps<{ sectionSlug: string; forumPath: string[]; pageStr?: string }>()
 const page = computed(() => pageFromPath(props.pageStr))
-const params = computed<TopicsRequestParams>(() => ({
-  page: page.value,
-}))
 
 const pageLinkGen = computed(() => (newPage: number) => ({
   name: 'forum',
@@ -70,16 +79,21 @@ const pageLinkGen = computed(() => (newPage: number) => ({
   },
 }))
 
-const { state: sections } = useForumForums()
+const forumStore = useForumsStore()
+const topicStore = useTopicsStore()
+
+onServerPrefetch(async () => {
+  await Promise.all([topicStore.topicsPromise, topicStore.stickyTopicsPromise])
+})
 
 const forum = computed(() => {
-  if (!sections.value) {
+  if (!forumStore.forumForums) {
     return null
   }
 
   const forumPathCopy = [...props.forumPath]
 
-  let forums = sections.value.find((section) => section.slug === props.sectionSlug)?.subForums
+  let forums = forumStore.forumForums.find((section) => section.slug === props.sectionSlug)?.subForums
 
   while (forumPathCopy.length > 1) {
     if (!forums) {
@@ -94,15 +108,21 @@ const forum = computed(() => {
   const lastForumSlug = forumPathCopy.shift()
   return forums?.find((forum) => forum.slug === lastForumSlug) ?? null
 })
+watch(
+  forum,
+  () => {
+    topicStore.forumId = forum.value?.id ?? 0
+  },
+  { immediate: true },
+)
+watch(
+  page,
+  () => {
+    topicStore.params.page = page.value
+  },
+  { immediate: true },
+)
 
-const { state: topics, isLoading: topicsLoading, requestedAt: topicsRequestedAt } = useTopics(
-  computed(() => forum.value?.id.toString(10) ?? '0'),
-  params,
-)
-const { state: stickyTopics, isLoading: stickyTopicsLoading, requestedAt: stickyTopicsRequestedAt } = useStickyTopics(
-  computed(() => forum.value?.id.toString(10) ?? '0'),
-  params,
-)
 function showSpinner(loading: boolean, requestedAt: number) {
   return loading && Date.now() - requestedAt < 250
 }

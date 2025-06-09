@@ -1,31 +1,38 @@
 import { fileURLToPath, URL } from 'node:url'
+import path from 'node:path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 // @ts-expect-error
 import vitePluginFaviconsInject from 'vite-plugin-favicons-inject'
-import { visualizer } from 'rollup-plugin-visualizer'
+// import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vueJsx({}),
     vue(),
-    vitePluginFaviconsInject('./src/favicon_upscaled.png', {
-      appName: 'Yukkuricraft forums archive',
-      appDescription: 'Yukkuricraft forums archive',
-      developerName: 'Katrix',
-      developerURL: null,
-      background: '#fff',
-      theme_color: '#e56a00',
-      icons: {
-        coast: false,
-        firefox: false,
-        yandex: false,
+    vitePluginFaviconsInject(
+      fileURLToPath(new URL('./src/favicon_upscaled.png', import.meta.url)),
+      {
+        appName: 'Yukkuricraft forums archive',
+        appDescription: 'Yukkuricraft forums archive',
+        developerName: 'Katrix',
+        developerURL: null,
+        background: '#fff',
+        theme_color: '#e56a00',
+        icons: {
+          coast: false,
+          firefox: false,
+          yandex: false,
+        },
       },
-    }),
-    visualizer({ template: 'treemap', open: true, gzipSize: true }),
+      {
+        failGraciously: true,
+      },
+    ),
+    // visualizer({ template: 'treemap', open: true, gzipSize: true }),
   ],
   resolve: {
     alias: {

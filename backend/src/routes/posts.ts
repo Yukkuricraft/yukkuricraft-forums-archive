@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-import type { PrismaClient } from '@prisma/client'
-import { getPosts } from '@prisma/client/sql'
+import type { PrismaClient } from '@yukkuricraft-forums-archive/database'
+import { getPosts } from '@yukkuricraft-forums-archive/database/sql'
 
 export type Post = getPosts.Result
 

@@ -25,15 +25,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onServerPrefetch } from 'vue'
 import { type RouteLocationRaw, useRoute } from 'vue-router'
 import Navbar from './components/ForumsNavbar.vue'
 import Footer from './components/YcFooter.vue'
-import { useForumForums } from './dataComposables'
+import { useForumsStore } from '@/stores/forums.ts'
+import { useTopicsStore } from '@/stores/topics.ts'
 
-const { state: sections } = useForumForums()
+const forumsStore = useForumsStore()
+const topicStore = useTopicsStore()
 
 const route = useRoute()
+
+onServerPrefetch(() => forumsStore.promise)
 
 const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: string }[]>(() => {
   const strPath = route.path
@@ -58,11 +62,11 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     return []
   }
 
-  const section = sections.value?.find((section) => section.slug === sectionSlug)
+  const section = forumsStore.forumForums.find((section) => section.slug === sectionSlug)
   res.push({
     text: section?.title ?? sectionSlug,
     to: { name: 'section', params: { sectionSlug } },
-    key: `home/${sectionSlug}`
+    key: `home/${sectionSlug}`,
   })
 
   const forumPath = []
@@ -71,17 +75,10 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
   while ((forumSlug = path.shift())) {
     if (/^\d+/gm.test(forumSlug)) {
       res.push({
-        text: forumSlug, // TODO current topic name
-        to: { name: 'posts', params: { sectionSlug, forumPath, topic: forumSlug } },
-        key: `home/${sectionSlug}/${forumPath.join('/')}/${forumSlug}`
-      })
-
-      /*
-      res.push({
-        text: this.getCurrentTopic?.title ?? forumSlug,
+        text: topicStore.selectedTopic?.title ?? forumSlug,
         to: { name: 'posts', params: { forumPath: [...forumPath] } },
+        key: `home/${sectionSlug}/${forumPath.join('/')}/${forumSlug}`,
       })
-      */
       break
     }
 
@@ -93,7 +90,7 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     res.push({
       text: forum?.title ?? forumSlug,
       to: { name: 'forum', params: { sectionSlug, forumPath } },
-      key: `home/${sectionSlug}/${forumPath.join('/')}`
+      key: `home/${sectionSlug}/${forumPath.join('/')}`,
     })
   }
 

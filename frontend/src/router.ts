@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from './pages/HomePage.vue'
 import SectionPage from './pages/SectionPage.vue'
@@ -9,7 +9,7 @@ import SearchPage from '@/pages/SearchPage.vue'
 
 export function createYcForumsRouter() {
   return createRouter({
-    history: createWebHistory('/'),
+    history: import.meta.env.SSR ? createMemoryHistory('/') : createWebHistory('/'),
     routes: [
       {
         path: '/',
@@ -45,7 +45,7 @@ export function createYcForumsRouter() {
         name: 'user',
         component: UserPage,
         props: true,
-      }
+      },
     ],
   })
 }

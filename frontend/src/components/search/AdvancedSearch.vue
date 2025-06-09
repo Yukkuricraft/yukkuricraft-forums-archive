@@ -184,12 +184,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { SearchJsonObj } from '@/pages/SearchPage.vue'
-import { useRootForums } from '@/dataComposables.ts'
-import type { ForumTree } from '@yukkuricraft-forums-archive/backend/dist/routes/forum.ts'
+import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons'
+import { useForumsStore } from '@/stores/forums.ts'
 
-const { state: forums } = useRootForums()
+const forumStore = useForumsStore()
 
 const props = defineProps<{ q: string; searchJson: SearchJsonObj }>()
 
@@ -289,7 +289,7 @@ const channelOptions = computed(() => {
     f.subForums.forEach((sf) => addForumOption(sf, depth + 1))
   }
 
-  forums.value.forEach((f) => addForumOption(f, 0))
+  forumStore.rootForums.forEach((f) => addForumOption(f, 0))
 
   return options
 })

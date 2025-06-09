@@ -1,77 +1,9 @@
-import { PrismaClient, Prisma } from '@prisma/client'
+import { PrismaClient, Prisma } from '@yukkuricraft-forums-archive/database'
 
 import { type Context, Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-
-const lastPostInclude = {
-  include: {
-    Post: {
-      select: {
-        createdAt: true,
-        creatorId: true,
-      },
-    },
-  },
-} as const satisfies Prisma.Topic$LastPostArgs
-
-const topicIncludeRequest = {
-  RedirectTo: {
-    include: {
-      RedirectTo: {
-        include: {
-          LastPost: lastPostInclude,
-        },
-      },
-    },
-  },
-  LastPost: lastPostInclude,
-} as const satisfies Prisma.TopicInclude
-
-function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>) {
-  const oldTopic = row
-  const newTopic = row.RedirectTo?.RedirectTo
-
-  const topic = newTopic ?? oldTopic
-
-  const lastPostSummary = {
-    postId: topic.LastPost?.postId,
-    at: topic.LastPost?.Post?.createdAt,
-    userId: topic.LastPost?.Post?.creatorId,
-  }
-
-  let redirectTo
-  if (newTopic) {
-    redirectTo = {
-      id: newTopic.id,
-      forumId: newTopic.forumId,
-      creatorId: newTopic.creatorId,
-      createdAt: newTopic.createdAt,
-      slug: newTopic.slug,
-      title: newTopic.title,
-      sticky: newTopic.sticky,
-      deletedAt: newTopic.deletedAt,
-      hidden: newTopic.hidden,
-      postCount: newTopic.postCount,
-      lastPostSummary,
-    }
-  }
-
-  return {
-    id: oldTopic.id,
-    forumId: oldTopic.forumId,
-    creatorId: oldTopic.creatorId,
-    createdAt: oldTopic.createdAt,
-    slug: oldTopic.slug,
-    title: oldTopic.title,
-    sticky: oldTopic.sticky,
-    deletedAt: oldTopic.deletedAt,
-    hidden: oldTopic.hidden,
-    postCount: oldTopic.postCount,
-    redirectTo,
-    lastPostSummary,
-  }
-}
+import { topicIncludeRequest, makeOutTopic } from '@yukkuricraft-forums-archive/types/topic'
 
 function topicOrder(
   sortBy: 'dateLastUpdate' | 'dateStartedPost' | 'replies' | 'title' | 'members',
@@ -101,8 +33,6 @@ async function make404(c: Context, prisma: PrismaClient, parentId: number) {
 
   return c.json({ error: 'not found' }, 404)
 }
-
-export type Topic = ReturnType<typeof makeOutTopic>
 
 const app = new Hono()
   .get(

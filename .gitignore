@@ -30,3 +30,5 @@ backend/dist
 
 # misc
 .DS_Store
+
+frontend/distserver

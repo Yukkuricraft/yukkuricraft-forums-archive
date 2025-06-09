@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import type { User } from '@yukkuricraft-forums-archive/backend/dist/routes/user.ts'
+import type { User } from '@yukkuricraft-forums-archive/types/user'
 
 defineProps<{ user: User | null }>()
 </script>

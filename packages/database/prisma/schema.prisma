@@ -6,11 +6,12 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["typedSql", "views", "relationJoins", "fullTextSearchPostgres"]
+  output = "../generated/prisma"
 }
 
 generator kysely {
   provider  = "prisma-kysely"
-  output    = "./src/generated/kysely"
+  output    = "../generated/kysely"
   camelCase = true
 }
 

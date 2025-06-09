@@ -10,7 +10,12 @@
 * topic sorting
 * Post simple filter
 * Generate proper links in BbcodeQuote
-* Setup refs to store current forum, topic, user
 * Handle errors
 * Server side rendering
 * Dockerize
+* Show last post on forum list
+* Replace bbob
+* * Either with a home grown solution, or another library 
+* Remove Prisma typed sql. Needing an active database connection is too big a requirement
+* * Maybe rewrite some to kysely queries
+* Fix users now showing up if loading a post directly

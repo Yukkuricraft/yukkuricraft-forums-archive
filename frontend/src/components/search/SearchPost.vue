@@ -51,25 +51,23 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchPost as SearchPostType } from '@yukkuricraft-forums-archive/backend/dist/routes/search.ts'
+import type { SearchPost as SearchPostType } from '@yukkuricraft-forums-archive/types/search'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useUsers } from '@/dataComposables.ts'
 import { computed, ref } from 'vue'
 import UserLink from '@/components/UserLink.vue'
 import { pageCount } from '@/util/pageCount.ts'
 import PostContent from '@/components/PostContent.vue'
+import { useUsersStore } from '@/stores/users.ts'
 
 const props = defineProps<{
   post: SearchPostType
 }>()
 
+const userStore = useUsersStore()
+
 const hideContent = ref(true)
 
-const users = useUsers(computed(() => (props.post.creatorId === null ? [] : [props.post.creatorId])))
-const creator = computed(() => {
-  if (!props.post.creatorId) return null
-  return users.value[props.post.creatorId]?.state.value ?? null
-})
+const creator = userStore.useUser(computed(() => props.post.creatorId))
 
 const sectionSlug = computed(() => {
   const slug = props.post.topic.forum.slug ?? []

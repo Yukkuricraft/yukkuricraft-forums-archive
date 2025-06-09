@@ -54,17 +54,22 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '@yukkuricraft-forums-archive/backend/dist/routes/posts.ts'
+import type { Post } from '@yukkuricraft-forums-archive/types/post'
 import PostContent from '@/components/PostContent.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useUsers } from '@/dataComposables.ts'
-import { computed } from 'vue'
-import type { User } from '@yukkuricraft-forums-archive/backend/dist/routes/user.ts'
+import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'
+import { useUsersStore } from '@/stores/users.ts'
+
+const userStore = useUsersStore()
 
 const props = defineProps<{
   post: Post
 }>()
+
+onServerPrefetch(async () => {
+  await Promise.all(Object.values(userStore.users).map((user) => user.promise))
+})
 
 const joinDateFormat = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' })
 function formatJoinDate(str: string): string {
@@ -84,19 +89,6 @@ function formatDateStr(date: string) {
   return dateFormat.format(new Date(date))
 }
 
-function removeUndefinedNullFromArr<A>(arr: (A | null | undefined)[]): A[] {
-  return arr.flatMap((a) => (a === null || a === undefined ? [] : [a]))
-}
-
-const users = useUsers(computed(() => removeUndefinedNullFromArr([props.post.creatorid, props.post.posteditcreatorid])))
-const creator = computed<User | null>(() => {
-  if (!props.post.creatorid) return null
-
-  return users.value[props.post.creatorid]?.state.value ?? null
-})
-const lastEditUser = computed<User | null>(() => {
-  if (!props.post.posteditcreatorid) return null
-
-  return users.value[props.post.posteditcreatorid]?.state.value ?? null
-})
+const creator = userStore.useUser(computed(() => props.post.creatorid))
+const lastEditUser = userStore.useUser(computed(() => props.post.posteditcreatorid))
 </script>

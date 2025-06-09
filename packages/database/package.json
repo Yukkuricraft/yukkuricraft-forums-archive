@@ -1,0 +1,43 @@
+{
+  "name": "@yukkuricraft-forums-archive/database",
+  "type": "module",
+  "scripts": {
+    "db:generate": "prisma generate --sql",
+    "build": "tsc && yarn copy-prisma",
+    "copy-prisma": "copyfiles ./generated/prisma/** ./dist",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint",
+    "fixlint": "eslint --fix"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./dist/src/client.js"
+    },
+    "./kysely": {
+      "types": "./src/kysely.ts",
+      "default": "./dist/src/kysely.js"
+    },
+    "./sql": {
+      "types": "./src/sql.ts",
+      "default": "./dist/src/sql.js"
+    }
+  },
+  "private": true,
+  "dependencies": {
+    "prisma": "^6.9.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.9.0",
+    "@types/copyfiles": "^2",
+    "@types/node": "^22.15.30",
+    "@yukkuricraft-forums-archive/ts-config": "workspace:*",
+    "copyfiles": "^2.4.1",
+    "prisma-kysely": "^1.8.0",
+    "typescript": "^5.8.3"
+  }
+}

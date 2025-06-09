@@ -19,16 +19,16 @@
 <script setup lang="ts">
 import type { SearchJsonObj } from '@/pages/SearchPage.vue'
 import { ref, watch } from 'vue'
-import { doFetch } from '@/dataComposables.ts'
 import type {
   SearchPost as SearchPostType,
   SearchTopic as SearchTopicType,
-} from '@yukkuricraft-forums-archive/backend/dist/routes/search.ts'
+} from '@yukkuricraft-forums-archive/types/search'
 import { watchDebounced } from '@vueuse/core'
 import SearchPost from '@/components/search/SearchPost.vue'
 import AutoPagination from '@/components/AutoPagination.vue'
 import { pageCount } from '@/util/pageCount.ts'
 import SearchTopic from '@/components/search/SearchTopic.vue'
+import { doFetch } from '@/stores/utils.ts'
 
 const props = defineProps<{
   searchJson: SearchJsonObj
@@ -75,7 +75,7 @@ async function fetchResults() {
   searchResults.value = await doFetch<PostResult | TopicResult>('/api/search', 'search', abort.value.signal, {
     q: props.q,
     searchJSON: JSON.stringify(processedSearchJson),
-    p: p.value
+    p: p.value,
   })
 }
 

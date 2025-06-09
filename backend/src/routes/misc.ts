@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@yukkuricraft-forums-archive/database'
 import AppError from '../AppError.js'
 
 const app = new Hono().get(

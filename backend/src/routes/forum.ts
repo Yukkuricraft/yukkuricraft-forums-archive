@@ -1,13 +1,9 @@
 import { type Context, Hono } from 'hono'
-import { type Forum, PrismaClient } from '@prisma/client'
-import { getForumsBySlug } from '@prisma/client/sql'
+import { type Forum, PrismaClient } from '@yukkuricraft-forums-archive/database'
+import { getForumsBySlug } from '@yukkuricraft-forums-archive/database/sql'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import AppError from '../AppError.js'
-
-export interface ForumTree extends Forum {
-  subForums: ForumTree[]
-}
 
 async function getForumBySlug(slug: string[], c: Context) {
   const slugWithoutEnd = slug.at(-1)?.length === 0 ? slug.slice(0, -1) : slug

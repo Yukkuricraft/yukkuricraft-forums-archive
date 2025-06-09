@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ForumSection v-if="!isLoading && section" :forum="section" :heading-level="1" />
+    <ForumSection v-if="!forumStore.evaluating && section" :forum="section" :heading-level="1" />
     <template v-else>
       <div>Waiting</div>
       <!-- TODO: Handle 404 -->
@@ -14,16 +14,15 @@ import { computed } from 'vue'
 
 import ForumSection from '../components/ForumSection.vue'
 import { makeMeta } from '../pageHelpers'
-import { useForumForums, useRootForums } from '../dataComposables'
-
+import { useForumsStore } from '@/stores/forums.ts'
 const props = defineProps<{ sectionSlug: string }>()
 
-const { state: rootSections, isLoading } = useRootForums()
-const { state: forumSections } = useForumForums()
+const forumStore = useForumsStore()
+
 const section = computed(() =>
   props.sectionSlug.length === 0
-    ? (rootSections.value.find((s) => s.slug === 'forum') ?? null)
-    : (forumSections.value.find((s) => s.slug === props.sectionSlug) ?? null),
+    ? (forumStore.rootForums.find((s) => s.slug === 'forum') ?? null)
+    : (forumStore.forumForums.find((s) => s.slug === props.sectionSlug) ?? null),
 )
 
 useHead(

@@ -19,8 +19,9 @@
                 name: 'posts',
                 params: { sectionSlug, forumPath: forumPath, topic: topic.slug, topicId: topic.id },
               }"
+              @click="topicStore.select(topic)"
             >
-              <h2 class="h4">{{ topic.title }}</h2>
+              <h2 class="h4">{{ decodeHtmlEntities(topic.title) }}</h2>
             </router-link>
             <div class="byline">
               <p>Created: {{ formatDateStr(topic.createdAt as unknown as string) }} by {{ creator?.name }}</p>
@@ -59,12 +60,21 @@
 </template>
 
 <script setup lang="ts">
-import type { Topic } from '@yukkuricraft-forums-archive/backend/dist/routes/topic'
+import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useUsers } from '@/dataComposables.ts'
-import { computed } from 'vue'
+import { computed, onServerPrefetch } from 'vue'
+import { decodeHtmlEntities } from '@/htmlEntities.ts'
+import { useUsersStore } from '@/stores/users.ts'
+import { useTopicsStore } from '@/stores/topics.ts'
+
+const userStore = useUsersStore()
+const topicStore = useTopicsStore()
 
 const props = defineProps<{ topic: Topic; sectionSlug: string; forumPath: string[] }>()
+
+onServerPrefetch(async () => {
+  await Promise.all(Object.values(userStore.users).map((user) => user.promise))
+})
 
 const numberFormat = new Intl.NumberFormat()
 function formatNumber(num: number) {
@@ -82,20 +92,6 @@ function formatDateStr(date: string) {
   return dateFormat.format(new Date(date))
 }
 
-function removeUndefinedNullFromArr<A>(arr: (A | null | undefined)[]): A[] {
-  return arr.flatMap((a) => (a === null || a === undefined ? [] : [a]))
-}
-
-const users = useUsers(
-  computed(() => removeUndefinedNullFromArr([props.topic.creatorId, props.topic.lastPostSummary.userId])),
-)
-const creator = computed(() => {
-  if (!props.topic.creatorId) return null
-  return users.value[props.topic.creatorId]?.state.value ?? null
-})
-
-const lastPostUser = computed(() => {
-  if (!props.topic.lastPostSummary.userId) return null
-  return users.value[props.topic.lastPostSummary.userId]?.state.value ?? null
-})
+const creator = userStore.useUser(computed(() => props.topic.creatorId))
+const lastPostUser = userStore.useUser(computed(() => props.topic.lastPostSummary.userId))
 </script>

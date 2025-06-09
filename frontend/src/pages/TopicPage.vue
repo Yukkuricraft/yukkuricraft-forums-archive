@@ -1,17 +1,22 @@
 <template>
   <div>
     <h1 v-if="currentTopic" class="title is-2">
-      <FontAwesomeIcon v-show="showSpinner(topicLoading, topicRequestedAt)" spin :icon="faSpinner" />
+      <!-- TODO Using these properties is wrong, as it will only ever load from a cold state, where it will use the id -->
+      <FontAwesomeIcon
+        v-show="showSpinner(topicStore.topicsEvaluating, topicStore.topicsRequestedAt)"
+        spin
+        :icon="faSpinner"
+      />
       {{ currentTopic.title }}
     </h1>
 
     <div
-      v-show="showSpinner(postsLoading, postsRequestedAt)"
+      v-show="showSpinner(postsStore.evaluating, postsStore.requestedAt)"
       style="text-align: center; margin-top: 20vh; margin-bottom: 20vh"
     >
       <FontAwesomeIcon size="6x" spin :icon="faSpinner" />
     </div>
-    <ForumPost v-for="post in posts" :post="post" :key="'post-' + post.id" />
+    <ForumPost v-for="post in postsStore.posts" :post="post" :key="'post-' + post.id" />
 
     <Pagination
       v-if="currentTopic"
@@ -24,14 +29,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onServerPrefetch, watch } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
 import { pageFromPath } from '../pathUtils'
-import { usePosts, useTopic, useUsers } from '../dataComposables'
-import { useRoute, useRouter } from 'vue-router'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import ForumPost from '@/components/ForumPost.vue'
+import { useTopicsStore } from '@/stores/topics.ts'
+import { usePostsStore } from '@/stores/posts.ts'
+import { useUsersStore } from '@/stores/users.ts'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   sectionSlug: string
@@ -56,65 +63,44 @@ const pageLinkGen = computed(
     },
 )
 
-const {
-  state: gottenTopic,
-  isLoading: topicLoading,
-  requestedAt: topicRequestedAt,
-} = useTopic(computed(() => props.topicId))
-const {
-  state: posts,
-  isLoading: postsLoading,
-  requestedAt: postsRequestedAt,
-} = usePosts(
+const topicStore = useTopicsStore()
+const postsStore = usePostsStore()
+const usersStore = useUsersStore()
+
+const router = useRouter()
+
+onServerPrefetch(async () => {
+  // TODO
+  // await topicStore.selectedPromise
+  await postsStore.promise
+  await Promise.all(Object.values(usersStore.users).map((user) => user.promise))
+})
+
+watch(
   computed(() => props.topicId),
+  async () => {
+    console.log(props.topicId)
+    const res = await topicStore.selectFromId(props.topicId)
+    if (res) {
+      await router.replace(res)
+    }
+  },
+  { immediate: true },
+)
+
+watch(
   page,
+  () => {
+    topicStore.params.page = page.value
+  },
+  { immediate: true },
 )
 
 function showSpinner(loading: boolean, requestedAt: number) {
   return loading && Date.now() - requestedAt < 250
 }
 
-const currentTopic = computed(() => gottenTopic.value[0])
-const redirect = computed(() => gottenTopic.value[1])
+const currentTopic = computed(() => topicStore.selectedTopic)
 
-const router = useRouter()
-const route = useRoute()
-watch(currentTopic, () => {
-  const topic = currentTopic.value
-  if (topic) {
-    const topicSlug = topic.slug
-    const fullSlug = `${topic.id}-${topicSlug}`
-    if (props.sectionSlug !== fullSlug) {
-      router.replace({
-        name: 'posts',
-        hash: route.hash,
-        params: { ...route.params, topic: topicSlug },
-        query: route.query,
-        replace: true,
-      })
-    }
-  }
-})
-
-const creatorIds = computed(() => posts.value.flatMap((p) => (p.creatorid !== null ? [p.creatorid] : [])))
-const users = useUsers(creatorIds)
-
-function creator(id: number | null) {
-  if (id === null) {
-    return null
-  }
-
-  const user = users.value[id]
-  if (!user || !user.state) {
-    return null
-  }
-
-  return user.state.value
-}
-
-watch(redirect, () => {
-  if (redirect.value) {
-    router.replace(redirect.value)
-  }
-})
+usersStore.watchUserArray(computed(() => postsStore.posts.flatMap((p) => (p.creatorid !== null ? [p.creatorid] : []))))
 </script>
