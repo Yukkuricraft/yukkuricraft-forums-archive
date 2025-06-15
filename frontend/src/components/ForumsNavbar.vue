@@ -29,20 +29,20 @@
               <div class="control">
                 <input
                   id="navbarSearch"
+                  v-model="searchInput"
                   class="input"
                   type="search"
                   placeholder="Search..."
                   aria-label="Search for posts and topics"
-                  v-model="searchInput"
                 />
               </div>
               <div class="control">
                 <router-link class="button" :to="{ name: 'search', query: { q: searchInput } }">Search</router-link>
               </div>
               <div class="control">
-                <router-link class="button" :to="{ name: 'search', query: { q: searchInput, AdvSearch: '1' } }"
-                  >Advanced search</router-link
-                >
+                <router-link class="button" :to="{ name: 'search', query: { q: searchInput, AdvSearch: '1' } }">
+                  Advanced search
+                </router-link>
               </div>
             </div>
           </div>

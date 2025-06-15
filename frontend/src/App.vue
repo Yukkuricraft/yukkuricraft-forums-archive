@@ -16,7 +16,19 @@
             </li>
           </ul>
         </nav>
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <template v-if="Component">
+            <Suspense>
+              <component :is="Component" />
+
+              <template #fallback>
+                <div style="text-align: center; margin-top: 20vh; margin-bottom: 20vh">
+                  <FontAwesomeIcon :icon="faSpinner" spin />
+                </div>
+              </template>
+            </Suspense>
+          </template>
+        </router-view>
       </div>
     </div>
 
@@ -29,15 +41,17 @@ import { computed, onServerPrefetch } from 'vue'
 import { type RouteLocationRaw, useRoute } from 'vue-router'
 import Navbar from './components/ForumsNavbar.vue'
 import Footer from './components/YcFooter.vue'
-import { useForumsStore } from '@/stores/forums.ts'
 import { useTopicsStore } from '@/stores/topics.ts'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useForumForums } from '@/composables/apiComposables.ts'
 
-const forumsStore = useForumsStore()
+const { data: forumForums, suspense } = useForumForums()
+
 const topicStore = useTopicsStore()
 
 const route = useRoute()
 
-onServerPrefetch(() => forumsStore.promise)
+onServerPrefetch(suspense)
 
 const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: string }[]>(() => {
   const strPath = route.path
@@ -62,7 +76,7 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     return []
   }
 
-  const section = forumsStore.forumForums.find((section) => section.slug === sectionSlug)
+  const section = forumForums.value?.find((section) => section.slug === sectionSlug)
   res.push({
     text: section?.title ?? sectionSlug,
     to: { name: 'section', params: { sectionSlug } },
@@ -75,7 +89,7 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
   while ((forumSlug = path.shift())) {
     if (/^\d+/gm.test(forumSlug)) {
       res.push({
-        text: topicStore.selectedTopic?.title ?? forumSlug,
+        text: topicStore.currentTopic?.title ?? forumSlug,
         to: { name: 'posts', params: { forumPath: [...forumPath] } },
         key: `home/${sectionSlug}/${forumPath.join('/')}/${forumSlug}`,
       })
@@ -89,7 +103,7 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
 
     res.push({
       text: forum?.title ?? forumSlug,
-      to: { name: 'forum', params: { sectionSlug, forumPath } },
+      to: { name: 'forum', params: { sectionSlug, forumPath: [...forumPath] } },
       key: `home/${sectionSlug}/${forumPath.join('/')}`,
     })
   }

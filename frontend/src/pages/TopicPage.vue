@@ -1,22 +1,8 @@
 <template>
   <div>
-    <h1 v-if="currentTopic" class="title is-2">
-      <!-- TODO Using these properties is wrong, as it will only ever load from a cold state, where it will use the id -->
-      <FontAwesomeIcon
-        v-show="showSpinner(topicStore.topicsEvaluating, topicStore.topicsRequestedAt)"
-        spin
-        :icon="faSpinner"
-      />
-      {{ currentTopic.title }}
-    </h1>
+    <h1 v-if="currentTopic" class="title is-2">{{ currentTopic.title }}</h1>
 
-    <div
-      v-show="showSpinner(postsStore.evaluating, postsStore.requestedAt)"
-      style="text-align: center; margin-top: 20vh; margin-bottom: 20vh"
-    >
-      <FontAwesomeIcon size="6x" spin :icon="faSpinner" />
-    </div>
-    <ForumPost v-for="post in postsStore.posts" :post="post" :key="'post-' + post.id" />
+    <ForumPost v-for="post in posts" :key="'post-' + post.id" :post="post" />
 
     <Pagination
       v-if="currentTopic"
@@ -29,16 +15,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onServerPrefetch, watch } from 'vue'
+import { computed, onServerPrefetch, watch, watchEffect } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
-import { pageFromPath } from '../pathUtils'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { pageCount, pageFromPath } from '../util/pathUtils.ts'
 import ForumPost from '@/components/ForumPost.vue'
 import { useTopicsStore } from '@/stores/topics.ts'
-import { usePostsStore } from '@/stores/posts.ts'
-import { useUsersStore } from '@/stores/users.ts'
-import { useRouter } from 'vue-router'
+import { useRouter, type RouteLocationRaw } from 'vue-router'
+import { NotFoundError, useApi } from '@/util/Api.ts'
+import { usePosts, useTopic } from '@/composables/apiComposables.ts'
+import { useQuery } from '@tanstack/vue-query'
 
 const props = defineProps<{
   sectionSlug: string
@@ -56,6 +41,7 @@ const pageLinkGen = computed(
         params: {
           sectionSlug: props.sectionSlug,
           forumPath: props.forumPath,
+          topicId: props.topicId,
           topic: props.topic,
           pageStr: newPage === 1 ? undefined : `page${newPage}`,
         },
@@ -64,43 +50,133 @@ const pageLinkGen = computed(
 )
 
 const topicStore = useTopicsStore()
-const postsStore = usePostsStore()
-const usersStore = useUsersStore()
+
+const { data: posts, suspense: suspensePosts } = usePosts(
+  computed(() => props.topicId),
+  computed(() => ({ page: page.value, pageSize: 10 })),
+)
+const {
+  data: currentTopic,
+  suspense: suspenseTopic,
+  failureReason: topicFailureReason,
+} = useTopic(
+  computed(() => props.topicId),
+  computed(() => topicStore.currentTopic),
+)
+
+const api = useApi()
+
+const { data: unknownObject, suspense: suspenseUnknownTopic } = useQuery({
+  queryKey: ['api', 'unknownObject', computed(() => props.topicId), topicFailureReason],
+  queryFn: ({ signal }) => {
+    return api.get<
+      | { forum: { forumSlug: string[] } }
+      | { topic: { forumSlug: string[]; topicSlug: string } }
+      | { post: { forumSlug: string[]; topicSlug: string; idx: number } }
+    >(`/api/unknownObject/${props.topicId}`, undefined, signal)
+  },
+  enabled: () => topicFailureReason.value !== null && topicFailureReason.value instanceof NotFoundError,
+})
 
 const router = useRouter()
 
+const actualRoute = computed<RouteLocationRaw | null>(() => {
+  const res = unknownObject.value
+  if (res) {
+    console.log(res)
+
+    if ('forum' in res) {
+      const parts = [...res.forum.forumSlug]
+      if (parts[0] === 'forum') {
+        parts.shift()
+      } else {
+        // TODO
+      }
+
+      return {
+        name: 'forum',
+        params: { sectionSlug: parts[0], forumPath: parts.slice(1) },
+      }
+    } else if ('topic' in res) {
+      const parts = [...res.topic.forumSlug]
+      if (parts[0] === 'forum') {
+        return null // We should already be here in that case
+      } else {
+        // TODO
+      }
+    } else {
+      const parts = [...res.post.forumSlug]
+      if (parts[0] === 'forum') {
+        parts.shift()
+      } else {
+        // TODO
+      }
+      const pageSize = 10 // Should be the default
+
+      const page = pageCount(res.post.idx, pageSize)
+
+      return {
+        name: 'topic',
+        params: {
+          sectionSlug: parts[0],
+          forumPath: parts.slice(1),
+          topicId: props.topicId,
+          topic: res.post.topicSlug,
+          pageStr: `page${page}`,
+        },
+        query: { p: props.topicId },
+        hash: `#post${props.topicId}`,
+      }
+    }
+  }
+
+  return null
+})
+
 onServerPrefetch(async () => {
-  // TODO
-  // await topicStore.selectedPromise
-  await postsStore.promise
-  await Promise.all(Object.values(usersStore.users).map((user) => user.promise))
+  await Promise.all([suspensePosts(), suspenseTopic()])
 })
 
 watch(
-  computed(() => props.topicId),
-  async () => {
-    console.log(props.topicId)
-    const res = await topicStore.selectFromId(props.topicId)
-    if (res) {
-      await router.replace(res)
+  currentTopic,
+  (t) => {
+    if (t) {
+      topicStore.currentTopic = t
     }
   },
   { immediate: true },
 )
 
+const actualTopicRoute = computed<RouteLocationRaw | null>(() => {
+  if (currentTopic.value && currentTopic.value.slug !== props.sectionSlug) {
+    return {
+      name: 'posts',
+      params: {
+        sectionSlug: props.sectionSlug,
+        forumPath: props.forumPath,
+        topicId: currentTopic.value.id,
+        topic: currentTopic.value.slug,
+        pageStr: page.value === 1 ? undefined : `page${page.value}`,
+      },
+    }
+  }
+
+  return null
+})
+
 watch(
-  page,
-  () => {
-    topicStore.params.page = page.value
+  actualTopicRoute,
+  async (v) => {
+    if (v) {
+      await router.replace(v)
+    }
   },
   { immediate: true },
 )
 
-function showSpinner(loading: boolean, requestedAt: number) {
-  return loading && Date.now() - requestedAt < 250
-}
-
-const currentTopic = computed(() => topicStore.selectedTopic)
-
-usersStore.watchUserArray(computed(() => postsStore.posts.flatMap((p) => (p.creatorid !== null ? [p.creatorid] : []))))
+watchEffect(() => {
+  if (actualRoute.value) {
+    router.replace(actualRoute.value)
+  }
+})
 </script>

@@ -10,11 +10,19 @@
           class="ml-1"
           :to="{
             name: 'posts',
-            params: { sectionSlug: 'sectionSlug', forumPath: 'forumPath', topicId: 1, topic: 'topic', pageStr: 'page1' },
+            params: {
+              sectionSlug: 'sectionSlug',
+              forumPath: 'forumPath',
+              topicId: 1,
+              topic: 'topic',
+              pageStr: 'page1',
+            },
             hash: `#post${referencedPost}`,
           }"
-          ><FontAwesomeIcon :icon="faLink" /></router-link
-        ><br />
+        >
+          <FontAwesomeIcon :icon="faLink" />
+        </router-link>
+        <br />
       </template>
       <slot></slot>
     </div>

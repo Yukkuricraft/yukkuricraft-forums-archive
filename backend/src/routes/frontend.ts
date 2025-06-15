@@ -6,15 +6,23 @@ import fs from 'node:fs/promises'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { transformHtmlTemplate } from 'unhead/server'
 import { type Unhead } from 'unhead/types'
+import AppError from '../AppError.js'
+import { languageDetector } from 'hono/language'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const app = new Hono<{ Bindings: HttpBindings }>()
+const app = new Hono<{ Bindings: HttpBindings }>().use(
+  languageDetector({
+    fallbackLanguage: 'en',
+  }),
+)
 
 type Render = (
   url: string,
   manifest: { [k: string]: string[] },
-) => Promise<{ html: string; preloadLinks: string; head: Unhead<any>; piniaState: string }>
+  requestsBase: string,
+  locales?: string | string[] | undefined,
+) => Promise<{ html: string; preloadLinks: string; head: Unhead<any>; piniaState: string; queryClientState: string }>
 
 function fileCwd() {
   const cwd = process.cwd()
@@ -44,7 +52,8 @@ const [template, render, fixStacktrace] = await (async () => {
 
     return [
       () => Promise.resolve(template),
-      async (url: string) => await render(url, manifest.default),
+      async (url: string, port: number, locales: string | string[] | undefined) =>
+        await render(url, manifest.default, `http://localhost:${port}/`, locales),
       undefined,
     ] as const
   } else {
@@ -82,24 +91,34 @@ const [template, render, fixStacktrace] = await (async () => {
 
     return [
       async (url: string) => await vite.transformIndexHtml(url, template),
-      async (url: string) => await render(url, {}),
+      async (url: string, port: number, locales: string | string[] | undefined) =>
+        await render(url, {}, `http://localhost:${port}/`, locales),
       (e: any) => vite.ssrFixStacktrace(e),
     ] as const
   }
 })()
 
 async function handle(c: Context) {
+  const port = c.get('addressInfo').port
+  if (!port) {
+    throw new AppError('Not port defined', false)
+  }
+
   try {
     console.log('Rendering: ' + c.req.path)
-    const rendered = await render(c.req.path)
+
+    const rendered = await render(c.req.path, port, c.get('language'))
     const baseTemplate = await template(c.req.path)
 
-    const piniaStateScript = `<script id="pinia-state">window.__PINIA_STATE__ = ${JSON.stringify(rendered.piniaState)}</script>`
+    const stateScript = `<script id="pinia-state">
+  window.__PINIA_STATE__ = ${JSON.stringify(rendered.piniaState)}
+  window.__QUERY_CLIENT_STATE__ = ${JSON.stringify(rendered.queryClientState)}
+ </script>`
 
     const reqTemplate = baseTemplate
       .replace('<!--preload-links-->', rendered.preloadLinks ?? '')
       .replace('<!--app-html-->', rendered.html ?? '')
-      .replace('<!--pinia-state-script-->', piniaStateScript ?? '')
+      .replace('<!--state-script-->', stateScript ?? '')
 
     const templateWithHead = await transformHtmlTemplate(rendered.head, reqTemplate)
 

@@ -6,7 +6,12 @@
       </router-link>
     </ConfigurableHeading>
 
-    <ForumList :forums="forum.subForums" :section-slug="forum.slug" :forum-path="[]" :heading-level="headingLevel"></ForumList>
+    <ForumList
+      :forums="forum.subForums"
+      :section-slug="forum.slug"
+      :forum-path="[]"
+      :heading-level="headingLevel"
+    ></ForumList>
   </div>
 </template>
 

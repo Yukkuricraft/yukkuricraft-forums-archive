@@ -2,12 +2,12 @@ import vuePreset from '@bbob/preset-vue'
 import BbcodeVideo from '@/components/bbcode/BbcodeVideo.vue'
 import BbcodeSpoiler from '@/components/bbcode/BbcodeSpoiler.vue'
 import bbob from '@bbob/core'
-import { lineBreakPlugin } from '@/util/lineBreakPlugin.ts'
+import { lineBreakPlugin } from '@/components/bbcode/lineBreakPlugin.ts'
 import type { BBobCoreTagNodeTree, BBobPluginFunction, NodeContent, TagNodeObject } from '@bbob/types'
-import { defineComponent } from 'vue'
+import { defineComponent, type Component } from 'vue'
 import BbcodeQuote from '@/components/bbcode/BbcodeQuote.vue'
 import { parse } from '@bbob/parser'
-import { decodeHtmlEntities } from '@/htmlEntities.ts'
+import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 
 function attr(attrs: Record<string, unknown> | undefined) {
   const entries = Object.entries(attrs ?? {})
@@ -363,7 +363,7 @@ function unparseTree(tree: TagNodeObject): string {
   return `[${tree.tag}${strAttr}]${strContent.join('')}[/${tree.tag}]`
 }
 
-function sanitizePlugin(allowedTags: any[]): BBobPluginFunction {
+function sanitizePlugin(allowedTags: (string | Component)[]): BBobPluginFunction {
   return (tree: BBobCoreTagNodeTree) =>
     tree.walk((content) => {
       if (content && typeof content === 'object') {

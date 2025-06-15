@@ -1,31 +1,19 @@
 import { type Context, Hono } from 'hono'
 import { type Forum, PrismaClient } from '@yukkuricraft-forums-archive/database'
-import { getForumsBySlug } from '@yukkuricraft-forums-archive/database/sql'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import AppError from '../AppError.js'
+import { getForumsBySlugQuery } from '@yukkuricraft-forums-archive/types/forum'
 
 async function getForumBySlug(slug: string[], c: Context) {
   const slugWithoutEnd = slug.at(-1)?.length === 0 ? slug.slice(0, -1) : slug
 
-  const prisma: PrismaClient = c.get('prisma')
-  prisma.forum.findMany()
+  const prisma = c.get('prismaKysely')
 
-  const res = await prisma.$queryRawTyped(getForumsBySlug(slugWithoutEnd))
+  const res = await getForumsBySlugQuery(prisma.$kysely, slugWithoutEnd).execute()
   if (res.length === 0) {
     return c.json({ error: 'not found' }, 404)
   }
-
-  const resAsForums = res.map<Forum>((r) => ({
-    id: r.id,
-    parentId: r.parent_id,
-    slug: r.slug,
-    title: r.title,
-    description: r.description,
-    displayorder: r.displayorder,
-    topicsCount: r.topics_count,
-    postsCount: r.posts_count,
-  }))
 
   function makeForumTree(id: number, remaining: Forum[], depth: number): [Forum[], Forum[]] {
     const subForums = remaining.filter((f) => f.parentId === id)
@@ -41,7 +29,7 @@ async function getForumBySlug(slug: string[], c: Context) {
     return [newRemaining, res]
   }
 
-  const [remaining, roots] = makeForumTree(1, resAsForums, 0)
+  const [remaining, roots] = makeForumTree(1, res, 0)
   if (remaining.length > 0) {
     throw new AppError(`Could not attach all forums to tree: ${JSON.stringify(remaining)}`, true)
   }

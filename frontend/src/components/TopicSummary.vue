@@ -19,16 +19,16 @@
                 name: 'posts',
                 params: { sectionSlug, forumPath: forumPath, topic: topic.slug, topicId: topic.id },
               }"
-              @click="topicStore.select(topic)"
+              @click="topicStore.selectTopic(topic)"
             >
               <h2 class="h4">{{ decodeHtmlEntities(topic.title) }}</h2>
             </router-link>
             <div class="byline">
-              <p>Created: {{ formatDateStr(topic.createdAt as unknown as string) }} by {{ creator?.name }}</p>
+              <p>Created: {{ localeStore.formatDate(topic.createdAt) }} by {{ creator?.name }}</p>
             </div>
           </div>
 
-          <small>Responses: {{ formatNumber(topic.postCount - 1) }}</small>
+          <small>Responses: {{ localeStore.formatNumber(topic.postCount - 1) }}</small>
         </div>
 
         <div class="media-right">
@@ -47,7 +47,7 @@
             <div class="media-content">
               <div>
                 <div class="byline">
-                  <p>Posted: {{ formatDateStr(topic.lastPostSummary.at as unknown as string) }}</p>
+                  <p>Posted: {{ localeStore.formatDate(topic.lastPostSummary.at) }}</p>
                   <p>By: {{ lastPostUser?.name }}</p>
                 </div>
               </div>
@@ -63,35 +63,23 @@
 import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, onServerPrefetch } from 'vue'
-import { decodeHtmlEntities } from '@/htmlEntities.ts'
-import { useUsersStore } from '@/stores/users.ts'
+import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 import { useTopicsStore } from '@/stores/topics.ts'
+import { useLocaleStore } from '@/stores/localization.ts'
+import { useUser } from '@/composables/apiComposables.ts'
 
-const userStore = useUsersStore()
 const topicStore = useTopicsStore()
+const localeStore = useLocaleStore()
 
 const props = defineProps<{ topic: Topic; sectionSlug: string; forumPath: string[] }>()
 
+const { data: creator, suspense: creatorSuspense } = await useUser(computed(() => props.topic.creatorId))
+const { data: lastPostUser, suspense: lastPostUserSuspense } = await useUser(
+  computed(() => props.topic.lastPostSummary.userId),
+)
+
 onServerPrefetch(async () => {
-  await Promise.all(Object.values(userStore.users).map((user) => user.promise))
+  await creatorSuspense()
+  await lastPostUserSuspense()
 })
-
-const numberFormat = new Intl.NumberFormat()
-function formatNumber(num: number) {
-  return numberFormat.format(num)
-}
-
-const dateFormat = new Intl.DateTimeFormat(undefined, {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-})
-function formatDateStr(date: string) {
-  return dateFormat.format(new Date(date))
-}
-
-const creator = userStore.useUser(computed(() => props.topic.creatorId))
-const lastPostUser = userStore.useUser(computed(() => props.topic.lastPostSummary.userId))
 </script>

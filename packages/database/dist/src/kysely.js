@@ -1,1 +1,1 @@
-export * from '../generated/kysely/types.js';
+export * from '../generated/kysely/types.js'

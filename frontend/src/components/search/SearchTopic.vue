@@ -1,5 +1,10 @@
 <template>
-  <TopicSummary v-if="(topic.forum.slug ?? [])[0] === 'forum'" :topic="convertedTopic" :section-slug="sectionSlug" :forum-path="forumPath" />
+  <TopicSummary
+    v-if="(topic.forum.slug ?? [])[0] === 'forum'"
+    :topic="convertedTopic"
+    :section-slug="sectionSlug"
+    :forum-path="forumPath"
+  />
   <div v-else>
     <!-- TODO -->
     TODO

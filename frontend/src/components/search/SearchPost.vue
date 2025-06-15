@@ -11,7 +11,7 @@
     </div>
     <div class="media-content" style="width: 80%">
       <p>
-        <UserLink :user="creator" /> <span v-if="post.id === post.topic.id">started a topic </span
+        <UserLink :user="creator ?? null" /> <span v-if="post.id === post.topic.id">started a topic </span
         ><span v-else>replied to </span>
         <strong>
           <router-link
@@ -45,7 +45,7 @@
     </div>
 
     <div class="media-right">
-      {{ formatDateStr(post.createdAt as unknown as string) }}
+      {{ localeStore.formatDate(post.createdAt) }}
     </div>
   </div>
 </template>
@@ -53,21 +53,25 @@
 <script setup lang="ts">
 import type { SearchPost as SearchPostType } from '@yukkuricraft-forums-archive/types/search'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { computed, ref } from 'vue'
+import { computed, onServerPrefetch, ref } from 'vue'
 import UserLink from '@/components/UserLink.vue'
-import { pageCount } from '@/util/pageCount.ts'
 import PostContent from '@/components/PostContent.vue'
-import { useUsersStore } from '@/stores/users.ts'
+
+import { pageCount } from '@/util/pathUtils.ts'
+import { useLocaleStore } from '@/stores/localization.ts'
+import { useUser } from '@/composables/apiComposables.ts'
 
 const props = defineProps<{
   post: SearchPostType
 }>()
 
-const userStore = useUsersStore()
+const localeStore = useLocaleStore()
 
 const hideContent = ref(true)
 
-const creator = userStore.useUser(computed(() => props.post.creatorId))
+const { data: creator, suspense } = useUser(computed(() => props.post.creatorId))
+
+onServerPrefetch(suspense)
 
 const sectionSlug = computed(() => {
   const slug = props.post.topic.forum.slug ?? []
@@ -84,15 +88,4 @@ const postPage = computed(() => {
   if (props.post.idx === null) return undefined
   return 'page' + pageCount(props.post.idx, 10)
 })
-
-const dateFormat = new Intl.DateTimeFormat(undefined, {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-})
-function formatDateStr(date: string) {
-  return dateFormat.format(new Date(date))
-}
 </script>

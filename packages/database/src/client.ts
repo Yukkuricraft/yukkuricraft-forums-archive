@@ -1,4 +1,4 @@
-import { PrismaClient, type Prisma } from "../generated/prisma/index.js";
+import { PrismaClient, type Prisma } from '../generated/prisma/index.js'
 
 const options = {
   log: [
@@ -8,9 +8,8 @@ const options = {
   ],
 } satisfies Prisma.PrismaClientOptions
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient<typeof options, 'error' | 'warn'> };
+const globalForPrisma = global as unknown as { prisma: PrismaClient<typeof options, 'error' | 'warn'> }
 
-export const prisma =
-  globalForPrisma.prisma || new PrismaClient(options);
+export const prisma = globalForPrisma.prisma || new PrismaClient(options)
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma

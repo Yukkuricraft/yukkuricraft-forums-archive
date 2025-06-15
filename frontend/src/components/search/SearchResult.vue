@@ -1,16 +1,16 @@
 <template>
-  <h1 class="title is-1" id="resultsTop">Search result</h1>
+  <h1 id="resultsTop" class="title is-1">Search result</h1>
 
-  <template v-if="searchResults.type === 'post'">
-    <SearchPost v-for="post in searchResults.results" :post="post" :key="post.id" />
+  <template v-if="searchResults?.type === 'post'">
+    <SearchPost v-for="post in searchResults.results" :key="post.id" :post="post" />
   </template>
   <template v-else>
-    <SearchTopic v-for="topic in searchResults.results" :topic="topic" :key="topic.id"></SearchTopic>
+    <SearchTopic v-for="topic in searchResults?.results" :key="topic.id" :topic="topic"></SearchTopic>
   </template>
 
   <AutoPagination
     :current-page="p"
-    :page-count="pageCount(searchResults.total, 10)"
+    :page-count="pageCount(searchResults?.total ?? 0, 10)"
     :navigate-to-page="(v) => (p = v)"
     :shown-pages="7"
   />
@@ -18,38 +18,24 @@
 
 <script setup lang="ts">
 import type { SearchJsonObj } from '@/pages/SearchPage.vue'
-import { ref, watch } from 'vue'
-import type {
-  SearchPost as SearchPostType,
-  SearchTopic as SearchTopicType,
-} from '@yukkuricraft-forums-archive/types/search'
-import { watchDebounced } from '@vueuse/core'
+import { computed, ref, watch } from 'vue'
+import { refDebounced } from '@vueuse/core'
 import SearchPost from '@/components/search/SearchPost.vue'
 import AutoPagination from '@/components/AutoPagination.vue'
-import { pageCount } from '@/util/pageCount.ts'
 import SearchTopic from '@/components/search/SearchTopic.vue'
-import { doFetch } from '@/stores/utils.ts'
+
+import { pageCount } from '@/util/pathUtils.ts'
+import { type PostSearchResult, type TopicSearchResult, useApi } from '@/util/Api.ts'
+import { useQuery } from '@tanstack/vue-query'
 
 const props = defineProps<{
   searchJson: SearchJsonObj
   q: string
 }>()
 
-const abort = ref(new AbortController())
-
-type PostResult = { results: SearchPostType[]; total: number; type: 'post' }
-type TopicResult = { results: SearchTopicType[]; total: number; type: 'topic' }
-
-const searchResults = ref<PostResult | TopicResult>({ results: [], total: 0, type: 'post' })
-
 const p = ref(1)
 
-async function fetchResults() {
-  abort.value.abort()
-  abort.value = new AbortController()
-
-  document.getElementById('resultsTop')?.scrollIntoView({ behavior: 'smooth' })
-
+const processedSearchJson = computed(() => {
   const processedSearchJson = {
     ...props.searchJson,
     date: props.searchJson.date ? { ...props.searchJson.date } : undefined,
@@ -72,13 +58,31 @@ async function fetchResults() {
     delete processedSearchJson.channel
   }
 
-  searchResults.value = await doFetch<PostResult | TopicResult>('/api/search', 'search', abort.value.signal, {
-    q: props.q,
-    searchJSON: JSON.stringify(processedSearchJson),
-    p: p.value,
-  })
-}
+  return processedSearchJson
+})
 
-watchDebounced(props, fetchResults, { debounce: 500, immediate: true })
-watch(p, fetchResults)
+const processedSearchJsonDebounced = refDebounced(processedSearchJson, 500)
+
+const api = useApi()
+
+// TODO: Debounce
+const { data: searchResults } = useQuery({
+  queryKey: ['api', 'search', processedSearchJsonDebounced, computed(() => props.q), p],
+  queryFn: ({ signal }) =>
+    api.get<PostSearchResult | TopicSearchResult>(
+      '/api/search',
+      {
+        q: props.q,
+        searchJSON: JSON.stringify(processedSearchJsonDebounced),
+        p: p.value,
+      },
+      signal,
+    ),
+})
+
+watch(searchResults, () => {
+  if (typeof document !== 'undefined') {
+    document.getElementById('resultsTop')?.scrollIntoView({ behavior: 'smooth' })
+  }
+})
 </script>

@@ -85,20 +85,20 @@ const app = new Hono()
       return c.json({ error: 'no user ids provided' }, 400)
     }
 
-    const invalidUserIds = userIds.filter(id => isNaN(Number(id)))
+    const invalidUserIds = userIds.filter((id) => isNaN(Number(id)))
     if (invalidUserIds.length > 0) {
       return c.json({ error: 'invalid user ids', idx: invalidUserIds }, 400)
     }
 
-    const userIdNums = userIds.map(id => Number(id))
+    const userIdNums = userIds.map((id) => Number(id))
 
     const users = await prisma.user.findMany({
       include: userInclude,
       where: {
         id: {
-          in: userIdNums
-        }
-      }
+          in: userIdNums,
+        },
+      },
     })
 
     return c.json(users)

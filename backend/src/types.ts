@@ -7,5 +7,8 @@ declare module 'hono' {
     prisma: PrismaClient
     prismaKysely: PrismaClientWithKysely
     logger: Logger
+    addressInfo: {
+      port: number | undefined
+    }
   }
 }

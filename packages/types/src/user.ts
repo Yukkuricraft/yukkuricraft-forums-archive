@@ -9,4 +9,4 @@ export const userInclude = {
   },
 } satisfies Prisma.UserInclude
 
-export type User = Prisma.UserGetPayload<{include: typeof userInclude}>
+export type User = Prisma.UserGetPayload<{ include: typeof userInclude }>

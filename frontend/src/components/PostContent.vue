@@ -5,8 +5,8 @@
 <script setup lang="ts">
 import bbcode from '@bbob/html'
 import { computed, onErrorCaptured } from 'vue'
-import { BbcodeRenderer, customPreset } from '@/util/BbcodeRenderer.tsx'
-import { lineBreakPlugin } from '@/util/lineBreakPlugin.ts'
+import { BbcodeRenderer, customPreset } from '@/components/BbcodeRenderer.tsx'
+import { lineBreakPlugin } from '@/components/bbcode/lineBreakPlugin.ts'
 
 const props = defineProps<{
   content: string

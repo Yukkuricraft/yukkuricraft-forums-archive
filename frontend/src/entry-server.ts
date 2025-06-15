@@ -3,14 +3,32 @@ import { renderToString, type SSRContext } from 'vue/server-renderer'
 import { createHead } from '@unhead/vue/server'
 import { type VueHeadClient } from '@unhead/vue'
 import { createYcForumsApp } from '@/app.ts'
+import { Api, apiKey } from '@/util/Api.ts'
+import { useLocaleStore } from '@/stores/localization.ts'
+import { dehydrate } from '@tanstack/vue-query'
+import { makeUsersLoader, userLoaderInjectKey } from '@/composables/apiComposables.ts'
 
 export async function render(
   url: string,
   manifest: { [k: string]: string[] },
-): Promise<{ html: string; preloadLinks: string; head: VueHeadClient; piniaState: string }> {
-  const { app, router, pinia } = createYcForumsApp()
+  requestsBase: string,
+  locales: string | string[] | undefined,
+): Promise<{
+  html: string
+  preloadLinks: string
+  head: VueHeadClient
+  piniaState: string
+  queryClientState: string
+}> {
+  const { app, router, pinia, queryClient } = createYcForumsApp()
   const head = createHead()
   app.use(head)
+  const api = new Api(requestsBase)
+  app.provide(apiKey, api)
+  app.provide(userLoaderInjectKey, makeUsersLoader(api))
+
+  const localeStore = useLocaleStore(pinia)
+  localeStore.locales = locales
 
   await router.push(url)
   await router.isReady()
@@ -18,9 +36,17 @@ export async function render(
   const ctx: SSRContext = {}
   const html = await renderToString(app, ctx)
 
+  const dehydratedState = dehydrate(queryClient)
+
   const preloadLinks = renderPreloadLinks(ctx.modules, manifest)
   const piniaState = pinia.state.value
-  return { html, preloadLinks, head, piniaState: JSON.stringify(piniaState) }
+  return {
+    html,
+    preloadLinks,
+    head,
+    piniaState: JSON.stringify(piniaState),
+    queryClientState: JSON.stringify(dehydratedState), //No idea is JSON is valid for this
+  }
 }
 
 function renderPreloadLinks(modules: string[], manifest: { [k: string]: string[] }) {

@@ -2,7 +2,8 @@ import { type UseHeadInput } from '@unhead/vue'
 import type { Ref } from 'vue'
 import { computed, isRef } from 'vue'
 
-import faviconUpscaledI from './favicon_upscaled.png'
+import faviconUpscaledI from '../favicon_upscaled.png'
+
 export const faviconUpscaled = faviconUpscaledI
 
 export function makeMeta({

@@ -1,8 +1,8 @@
 export const userInclude = {
-    UserGroup: {
-        select: {
-            userTitle: true,
-            color: true,
-        },
+  UserGroup: {
+    select: {
+      userTitle: true,
+      color: true,
     },
-};
+  },
+}

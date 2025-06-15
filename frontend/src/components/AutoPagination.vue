@@ -26,8 +26,8 @@
           v-if="navigateToPage"
           class="pagination-link"
           href="#"
-          @click.prevent="navigateToPage(page)"
           :class="page === currentPage && 'is-current'"
+          @click.prevent="navigateToPage(page)"
         >
           {{ page }}
         </a>
@@ -35,9 +35,9 @@
 
       <template v-if="pageCount !== 1 && !shownMiddlePages.includes(pageCount)">
         <li v-if="shownMiddlePages.includes(pageCount - 1)">
-          <router-link v-if="linkGen" class="pagination-link" :to="linkGen(pageCount - 1)">{{
-            pageCount - 1
-          }}</router-link>
+          <router-link v-if="linkGen" class="pagination-link" :to="linkGen(pageCount - 1)">
+            {{ pageCount - 1 }}
+          </router-link>
           <a v-if="navigateToPage" class="pagination-link" href="#" @click.prevent="navigateToPage(pageCount - 1)"></a>
         </li>
         <li v-else><span class="pagination-ellipsis">&hellip;</span></li>

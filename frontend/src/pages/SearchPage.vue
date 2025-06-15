@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { useRouteQuery } from '@vueuse/router'
 import z from 'zod'
-import { useSchemaRouteQuery } from '@/routeComposables.ts'
+import { useSchemaRouteQuery } from '@/composables/routeComposables.ts'
 import { computed, type Ref } from 'vue'
 import AdvancedSearch from '@/components/search/AdvancedSearch.vue'
 import SearchResult from '@/components/search/SearchResult.vue'

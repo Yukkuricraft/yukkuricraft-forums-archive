@@ -7,8 +7,8 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint",
-    "fixlint": "eslint --fix",
+    "lint": "turbo lint",
+    "fixlint": "turbo fixlint",
     "format-check": "prettier --check \"**/*.(md|yaml|json|js|ts|vue)\"",
     "format": "prettier --write \"**/*.(md|yaml|json|js|ts|vue)\""
   },
@@ -25,7 +25,7 @@
     "prettier": "^3.5.3",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1",
+    "typescript-eslint": "^8.34.0",
     "vue-eslint-parser": "^10.1.3"
   }
 }

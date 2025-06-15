@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 //https://github.com/JiLiZART/BBob/issues/125#issuecomment-1774257527
-import type { BBobCoreTagNodeTree, BBobPluginFunction, BBobPluginOptions, NodeContent } from '@bbob/types'
+import type { BBobCoreTagNodeTree, BBobPluginFunction, NodeContent } from '@bbob/types'
 
 /**
  * Plugin that converts line breaks to `<br/>` tags.
@@ -45,7 +46,7 @@ const walkNode = (t: NodeContent): NodeContent | NodeContent[] => {
   }
 
   if (typeof tree === 'string' && isEOL(tree)) {
-    return [{ tag: 'br', attrs: {}, content: null }, '\n']
+    return [{ tag: 'br', attrs: {}, content: null }]
   }
 
   return tree
@@ -53,12 +54,12 @@ const walkNode = (t: NodeContent): NodeContent | NodeContent[] => {
 
 const walkArr = (tree: NodeContent[]): NodeContent[] => {
   for (let idx = 0; idx < tree.length; idx++) {
-    const child = walkNode(tree[idx]);
+    const child = walkNode(tree[idx])
     if (Array.isArray(child)) {
-      tree.splice(idx, 1, ...child);
-      idx += child.length - 1;
+      tree.splice(idx, 1, ...child)
+      idx += child.length - 1
     } else {
-      tree[idx] = child;
+      tree[idx] = child
     }
   }
   return tree

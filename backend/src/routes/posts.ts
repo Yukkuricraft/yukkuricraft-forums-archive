@@ -1,10 +1,7 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-import type { PrismaClient } from '@yukkuricraft-forums-archive/database'
-import { getPosts } from '@yukkuricraft-forums-archive/database/sql'
-
-export type Post = getPosts.Result
+import { getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
 
 const app = new Hono().get(
   'topics/:topicId/posts',
@@ -20,9 +17,9 @@ const app = new Hono().get(
   async (c) => {
     const { page, q, pageSize } = c.req.valid('query')
     const { topicId } = c.req.valid('param')
-    const prisma: PrismaClient = c.get('prisma')
+    const prisma = c.get('prismaKysely')
 
-    const res = await prisma.$queryRawTyped(getPosts(topicId, q ?? '', pageSize, pageSize * (page - 1)))
+    const res = await getPostsQuery(prisma.$kysely, topicId, q ?? '', pageSize, pageSize * (page - 1)).execute()
 
     if (res.length === 0) {
       const topicExists = await prisma.topic.count({ where: { id: topicId } })

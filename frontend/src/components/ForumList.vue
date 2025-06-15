@@ -16,13 +16,13 @@
         <span v-for="subforum in forum.subForums" :key="'forum-' + forum.title + '-' + subforum.title">
           <router-link
             :to="{
-            name: 'forum',
-            params: { sectionSlug, forumPath: [...forumPath, forum.slug, subforum.slug] },
-          }"
+              name: 'forum',
+              params: { sectionSlug, forumPath: [...forumPath, forum.slug, subforum.slug] },
+            }"
           >
             {{ subforum.title }}
           </router-link>
-          ({{ formatNumber(subforum.topicsCount) }}/{{ formatNumber(subforum.postsCount) }})
+          ({{ localeStore.formatNumber(subforum.topicsCount) }}/{{ localeStore.formatNumber(subforum.postsCount) }})
         </span>
       </div>
     </div>
@@ -32,8 +32,9 @@
 <script setup lang="ts">
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import ConfigurableHeading from './ConfigurableHeading.vue'
+import { useLocaleStore } from '@/stores/localization.ts'
 
-const format = new Intl.NumberFormat()
+const localeStore = useLocaleStore()
 
 defineProps<{
   forums: ForumTree[]
@@ -41,8 +42,4 @@ defineProps<{
   forumPath: string[]
   headingLevel: number
 }>()
-
-function formatNumber(num: number) {
-  return format.format(num)
-}
 </script>

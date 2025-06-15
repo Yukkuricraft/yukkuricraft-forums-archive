@@ -28,6 +28,10 @@ import ssrRoutes from './routes/frontend.js'
 prisma.$on('error', (event) => rootLogger.error(event))
 prisma.$on('warn', (event) => rootLogger.warn(event))
 
+const addressInfo: { port: number | undefined } = {
+  port: undefined,
+}
+
 const prismaWithKysely = prisma.$extends(
   kyselyExtension({
     kysely: (driver) =>
@@ -52,12 +56,13 @@ const contextProvider = createMiddleware(async (c, next) => {
     'logger',
     rootLogger.child({ defaultMeta: { method: c.req.method, url: c.req.path, requestId: c.get('requestId') } }),
   )
+  c.set('addressInfo', addressInfo)
   await next()
 })
 
 const app = new Hono()
   .use(contextProvider)
-  .use(honoLogger(rootLogger.info))
+  //.use(honoLogger(rootLogger.info))
   .use(compress())
   .use(requestId())
   .use(secureHeaders({ strictTransportSecurity: false }))
@@ -91,6 +96,7 @@ const server = serve(
     hostname: process.env.HTTP_HOST,
   },
   (info) => {
+    addressInfo.port = info.port
     rootLogger.info(`Server is running on http://localhost:${info.port}`)
   },
 )

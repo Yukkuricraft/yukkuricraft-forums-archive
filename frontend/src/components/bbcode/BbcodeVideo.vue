@@ -17,6 +17,7 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   youtube?: string
+  // eslint-disable-next-line vue/prop-name-casing
   youtube_share?: string
 }>()
 

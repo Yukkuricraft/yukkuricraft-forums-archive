@@ -9,12 +9,17 @@ export default (rootDir, ts = true) => [
     noStyle: true,
   }),
   pluginSecurity.configs.recommended,
-  ...plugins['typescript-eslint'].configs.recommendedTypeChecked,
+  {
+    rules: {
+      'security/detect-object-injection': 'off',
+    },
+  },
+  ...(ts ? plugins['typescript-eslint'].configs.recommendedTypeChecked : []),
   {
     languageOptions: {
       ecmaVersion: 'latest',
       parserOptions: {
-        projectService: true,
+        projectService: ts,
         tsconfigRootDir: rootDir,
       },
     },
@@ -30,10 +35,12 @@ export default (rootDir, ts = true) => [
       'turbo/no-undeclared-env-vars': 'warn',
     },
   },
-  {
-    files: ['**/*.js'],
-    ...plugins['typescript-eslint'].configs.disableTypeChecked,
-  },
+  ts
+    ? {
+        files: ['**/*.js'],
+        ...plugins['typescript-eslint'].configs.disableTypeChecked,
+      }
+    : {},
   {
     ignores: ['dist', 'node_modules'],
   },

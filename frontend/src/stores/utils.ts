@@ -1,96 +1,74 @@
-import { type Ref, ref, watchEffect } from 'vue'
+import { ref } from 'vue'
 import { skipHydrate } from 'pinia'
+import { recordToQuery, ResponseCodeError, useApi } from '@/util/Api.ts'
 
-export class ResponseCodeError extends Error {
-  status: number
-  body: string
-  constructor(message: string, status: number, body: string) {
-    super(message)
-    this.status = status
-    this.body = body
-  }
-}
+export function useMemoizedFetcher<Type>(initialState: Type) {
+  const api = useApi()
+  const currentValue = ref<Type>(initialState)
+  const currentRoute = ref<string | null>(null)
 
-export class NotFoundError extends ResponseCodeError {
-  constructor(message: string, body: string) {
-    super(message, 404, body)
-  }
-}
-
-export async function doFetch<Response>(
-  url: string,
-  errorMessageObj: string,
-  signal?: AbortSignal,
-  params?: Record<string, string | number | (string | number)[] | undefined>,
-) {
-  const urlParams = new URLSearchParams()
-  Object.entries(params ?? {}).forEach(([key, value]) => {
-    if (Array.isArray(value)) {
-      value.forEach((subvalue) => {
-        urlParams.append(key, typeof subvalue === 'string' ? subvalue : subvalue.toString())
-      })
-    } else if (value !== undefined) {
-      urlParams.append(key, typeof value === 'string' ? value : value.toString())
-    }
-  })
-  const urlWithParams = urlParams.toString() === '' ? url : `${url}?${urlParams.toString()}`
-
-  const res = await fetch(urlWithParams, {
-    signal,
-  })
-
-  if (res.status === 404) {
-    throw new NotFoundError(`Did not find ${errorMessageObj} at ${urlWithParams}`, await res.text())
-  }
-
-  if (!res.ok) {
-    throw new ResponseCodeError(`Error getting ${errorMessageObj} at ${urlWithParams}`, res.status, await res.text())
-  }
-
-  const ret = await res.json()
-  return ret as Response
-}
-
-export function useAsyncWatch<A, Err = Error>(fn: (signal: AbortSignal) => Promise<A>, initialState: A) {
-  const evaluating = ref(false)
-  const error = ref<Error | null>(null) as Ref<Error>
+  const isLoading = ref(false)
+  const error = ref<ResponseCodeError | null>(null)
   const requestedAt = ref(new Date().getTime())
   const abortController = ref<AbortController | null>(null)
-  const state = ref(initialState)
-  const promise = ref<Promise<A> | null>(null)
+  const promise = ref<Promise<Type> | null>(null)
 
-  watchEffect(async () => {
+  const previousValues = new Map<string, { requestedAt: number; value: Type }>()
+
+  async function fetcher(
+    url: string | undefined,
+    params?: Record<string, string | number | undefined | string[] | number[]>,
+  ): Promise<Type> {
+    if (!url) {
+      return currentValue.value
+    }
+
+    const paramsStr = recordToQuery(params ?? {})
+
+    const to = url + paramsStr
+    if (currentRoute.value === to) {
+      return (await promise.value) ?? currentValue.value
+    }
+
+    currentRoute.value = to
+
+    const prev = previousValues.get(to)
+    if (prev) {
+      currentValue.value = prev.value
+      isLoading.value = false
+      requestedAt.value = prev.requestedAt
+      promise.value = Promise.resolve(prev.value)
+      return prev.value
+    }
+
     abortController.value?.abort()
     abortController.value = new AbortController()
-    evaluating.value = true
+    isLoading.value = true
     requestedAt.value = new Date().getTime()
+
+    const p = api.get<Type>(url, params, abortController.value.signal)
+    promise.value = p
+
     try {
-      promise.value = fn(abortController.value.signal)
-      state.value = await promise.value
+      const res = await p
+      isLoading.value = false
+      return res
     } catch (e) {
-      console.error(e)
-      error.value = e as Error
+      if (e instanceof ResponseCodeError) {
+        error.value = e
+        isLoading.value = false
+      }
+      throw e
     }
-    evaluating.value = false
-  })
+  }
 
-  return { state, error: skipHydrate(error), evaluating, requestedAt, promise: skipHydrate(promise) }
-}
-
-export function useAsyncMemoizedWatchFetch<A, Err = ResponseCodeError>(
-  url: Ref<string | undefined>,
-  errorMessageObj: string,
-  initialState: A,
-  params?: Ref<Record<string, string | number | (string | number)[] | undefined>>,
-) {
-  // TODO: Memoize
-
-  return useAsyncWatch(async (signal) => {
-    const to = url.value
-    if (to === undefined) {
-      return initialState
-    }
-
-    return await doFetch<A>(to, errorMessageObj, signal, params?.value)
-  }, initialState)
+  return {
+    currentValue,
+    currentRoute,
+    isLoading,
+    error: skipHydrate(error),
+    requestedAt,
+    promise: skipHydrate(promise),
+    fetcher,
+  }
 }

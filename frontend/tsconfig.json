@@ -8,7 +8,7 @@
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["node"],
+    "types": ["node"]
   },
   "references": [
     {

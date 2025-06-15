@@ -23,13 +23,13 @@
     </div>
     <div class="field-body">
       <div class="mr-2">
-        <span v-for="author in searchJson.author"
-          >{{ author }} <FontAwesomeIcon :icon="faTimesCircle" size="xs" @click="removeAuthor(author)"
-        /></span>
+        <span v-for="author in searchJson.author" :key="author">
+          {{ author }} <FontAwesomeIcon :icon="faTimesCircle" size="xs" @click="removeAuthor(author)" />
+        </span>
       </div>
       <div class="field">
         <div class="control">
-          <input class="input" type="text" v-model="authorField" @keyup.enter="addAuthor()" />
+          <input v-model="authorField" class="input" type="text" @keyup.enter="addAuthor()" />
         </div>
       </div>
     </div>
@@ -128,6 +128,8 @@
         <div class="control">
           <div class="select is-multiple">
             <select
+              multiple
+              size="6"
               @input="
                 (e) =>
                   emit('update:searchJson', {
@@ -135,11 +137,10 @@
                     channel: [...(e.target as HTMLSelectElement).selectedOptions].map((o) => o.value),
                   })
               "
-              multiple
-              size="6"
             >
               <option
                 v-for="option in channelOptions"
+                :key="option.value"
                 :value="option.value"
                 :style="{ marginLeft: `${1.5 * option.depth}rem` }"
                 :selected="searchJson.channel?.includes(option.value.toString())"
@@ -182,14 +183,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onServerPrefetch, ref, watch } from 'vue'
 import type { SearchJsonObj } from '@/pages/SearchPage.vue'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons'
-import { useForumsStore } from '@/stores/forums.ts'
+import { useRootForums } from '@/composables/apiComposables.ts'
 
-const forumStore = useForumsStore()
+const { data: rootForums, suspense } = useRootForums()
+
+onServerPrefetch(suspense)
 
 const props = defineProps<{ q: string; searchJson: SearchJsonObj }>()
 
@@ -239,7 +242,7 @@ function addAuthor() {
 }
 
 function removeAuthor(author: string) {
-  emit('update:searchJson', { ...props.searchJson, author: props.searchJson.author?.filter((a) => a != author) })
+  emit('update:searchJson', { ...props.searchJson, author: props.searchJson.author?.filter((a) => a !== author) })
 }
 
 const sortOrderSelected = computed<[keyof Required<SearchJsonObj>['sort'], 'asc' | 'desc']>(() => {
@@ -289,7 +292,7 @@ const channelOptions = computed(() => {
     f.subForums.forEach((sf) => addForumOption(sf, depth + 1))
   }
 
-  forumStore.rootForums.forEach((f) => addForumOption(f, 0))
+  rootForums.value?.forEach((f) => addForumOption(f, 0))
 
   return options
 })
