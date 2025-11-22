@@ -1,1 +1,1 @@
-export * from '../generated/prisma/sql/index.js'
+export * from '../generated/prisma/sql/index.js';

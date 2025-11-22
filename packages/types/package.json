@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@yukkuricraft-forums-archive/database": "workspace:*",
-    "kysely": "^0.28.2",
+    "kysely": "^0.28.8",
     "zod": "^3.25.57"
   }
 }

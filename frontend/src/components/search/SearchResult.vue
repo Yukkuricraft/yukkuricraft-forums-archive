@@ -65,7 +65,6 @@ const processedSearchJsonDebounced = refDebounced(processedSearchJson, 500)
 
 const api = useApi()
 
-// TODO: Debounce
 const { data: searchResults } = useQuery({
   queryKey: ['api', 'search', processedSearchJsonDebounced, computed(() => props.q), p],
   queryFn: ({ signal }) =>

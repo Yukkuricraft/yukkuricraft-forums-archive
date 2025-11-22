@@ -15,8 +15,9 @@
               <strong><UserLink :user="creator ?? null" /></strong>
             </p>
             <p :style="{ color: creator?.UserGroup?.color ?? undefined }">
-              <span v-html="creator?.title ?? creator?.UserGroup?.userTitle"></span>
-              <!-- TODO: Extract out HTML from title in DB -->
+              <span :style="{ color: creator?.titleColor ?? undefined, opacity: creator?.titleOpacity ?? undefined }">
+                {{ creator?.title ?? creator?.UserGroup?.userTitle }}
+              </span>
             </p>
             <p>
               Join Date: {{ localeStore.formatMonthYear(creator?.createdAt) }}

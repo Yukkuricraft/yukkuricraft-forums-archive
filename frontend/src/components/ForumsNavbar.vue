@@ -46,6 +46,25 @@
               </div>
             </div>
           </div>
+          <a v-if="!activeUser && !activeUserLoading" class="navbar-item" href="/oauth/discord">Log in</a>
+          <div v-else-if="activeUser" class="navbar-item has-dropdown">
+            <a class="navbar-link">
+              <UserAvatar
+                :width="32"
+                :user-id="activeUser.id"
+                :user-name="activeUser.name"
+                :has-avatar="Boolean(activeUser.avatarId)"
+                :thumbnail="true"
+              />
+            </a>
+
+            <div class="navbar-dropdown">
+              <router-link :to="{ name: 'user', params: { userId: activeUser.id, userName: activeUser.name } }">
+                Me
+              </router-link>
+              <a class="navbar-item" href="/signout">Sign out</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -54,7 +73,27 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import UserAvatar from '@/components/UserAvatar.vue'
+import { useQuery } from '@tanstack/vue-query'
+import { NotFoundError, useApi } from '@/util/Api.ts'
+import type { User } from '@yukkuricraft-forums-archive/types/user'
 
 const navbarExpanded = ref(false)
 const searchInput = ref('')
+
+const api = useApi()
+const { data: activeUser, isLoading: activeUserLoading } = useQuery({
+  queryKey: ['api', '@me'],
+  queryFn: async ({ signal }) => {
+    try {
+      return await api.get<User>('/api/@me', undefined, signal)
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        return null
+      } else {
+        throw e
+      }
+    }
+  },
+})
 </script>

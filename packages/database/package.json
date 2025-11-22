@@ -29,7 +29,7 @@
   },
   "private": true,
   "dependencies": {
-    "prisma": "^6.9.0"
+    "prisma": "^6.19.0"
   },
   "devDependencies": {
     "@prisma/client": "^6.9.0",
@@ -38,7 +38,7 @@
     "@yukkuricraft-forums-archive/eslint-config": "workspace:*",
     "@yukkuricraft-forums-archive/ts-config": "workspace:*",
     "copyfiles": "^2.4.1",
-    "prisma-kysely": "^1.8.0",
+    "prisma-kysely": "^2.2.1",
     "typescript": "^5.8.3"
   }
 }

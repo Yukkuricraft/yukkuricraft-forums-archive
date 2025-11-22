@@ -4,9 +4,10 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
   previewFeatures = ["typedSql", "views", "relationJoins", "fullTextSearchPostgres"]
-  output = "../generated/prisma"
+  output          = "../generated/prisma"
+  moduleFormat    = "esm"
 }
 
 generator kysely {
@@ -46,15 +47,18 @@ model Avatar {
 }
 
 model User {
-  id          Int       @id
-  userGroupId Int       @unique @map("user_group_id")
-  slug        String    @unique
-  name        String    @unique
-  title       String?
-  createdAt   DateTime? @map("created_at")
-  postCount   Int       @map("post_count")
-  signature   String?
-  avatarId    Int?      @map("avatar")
+  id           Int       @id
+  userGroupId  Int       @unique @map("user_group_id")
+  slug         String    @unique
+  name         String    @unique
+  email        String?   @unique
+  title        String?
+  titleColor   String?   @map("title_color")
+  titleOpacity Int?      @map("title_opacity")
+  createdAt    DateTime? @map("created_at")
+  postCount    Int       @map("post_count")
+  signature    String?
+  avatarId     Int?      @map("avatar")
 
   //Profile fields
   biography  String?
@@ -148,13 +152,13 @@ model TopicTag {
 }
 
 model Post {
-  id        Int                     @id
-  topicId   Int                     @map("topic_id")
-  creatorId Int?                    @map("creator_id")
-  createdAt DateTime                @map("created_at")
-  updatedAt DateTime                @map("updated_at")
+  id        Int       @id
+  topicId   Int       @map("topic_id")
+  creatorId Int?      @map("creator_id")
+  createdAt DateTime  @map("created_at")
+  updatedAt DateTime  @map("updated_at")
   content   String
-  deletedAt DateTime?               @map("deleted_at")
+  deletedAt DateTime? @map("deleted_at")
   hidden    Boolean
 
   Topic           Topic             @relation(fields: [topicId], references: [id])

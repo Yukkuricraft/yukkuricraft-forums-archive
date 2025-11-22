@@ -9,11 +9,11 @@ CREATE TABLE user_group
     id         INT PRIMARY KEY,
     title      TEXT NOT NULL,
     user_title TEXT NOT NULL,
-    color      TEXT NOT NULL,
+    color      TEXT
 );
 
-INSERT INTO user_group (id, title, user_title, open_tag, close_tag)
-SELECT usergroupid, title, usertitle, substring(open_tag from '<span style="color:(#?\w+)">')
+INSERT INTO user_group (id, title, user_title, color)
+SELECT usergroupid, title, usertitle, SUBSTRING(opentag FROM '<span style="color:(#?\w+)">')
 FROM yc_forum_archive.usergroup;
 
 CREATE TABLE avatar
@@ -39,7 +39,10 @@ CREATE TABLE "user"
     user_group_id INT  NOT NULL REFERENCES user_group,
     slug          TEXT NOT NULL UNIQUE,
     name          TEXT NOT NULL UNIQUE,
+    email         TEXT UNIQUE,
     title         TEXT,
+    title_color   TEXT,
+    title_opacity INT,
     created_at    TIMESTAMPTZ,
     post_count    INT  NOT NULL,
     signature     TEXT,
@@ -70,15 +73,26 @@ SELECT ca.userid,
 FROM yc_forum_archive.customavatar ca;
 -- The data here is fauly, and will need to be dumped from the live server
 
-INSERT INTO "user" (id, user_group_id, slug, name, title, created_at, post_count, signature, avatar,
+INSERT INTO "user" (id, user_group_id, slug, name, email, title, title_color, title_opacity, created_at, post_count,
+                    signature, avatar,
                     biography,
                     location, interests, occupation, in_game_name)
 SELECT u.userid,
        u.usergroupid,
        REPLACE((XPATH('/z/text()', ('<z>' || u.username || '</z>')::xml))[1]::TEXT, ' ',
-               '-'), --https://stackoverflow.com/questions/12145634/postgresql-replace-html-entities
+               '-'),                                                    --https://stackoverflow.com/questions/12145634/postgresql-replace-html-entities
        (XPATH('/z/text()', ('<z>' || u.username || '</z>')::xml))[1],
-       u.usertitle,
+       NULLIF(u.email, ''),
+       CASE
+           WHEN u.customtitle > 0 THEN CASE
+                                           WHEN usertitle ILIKE '%<%' THEN SUBSTRING(usertitle FROM
+                                                                                     '<(?:span style=".+"|font color=".+")>([\w ]+)')
+                                           ELSE usertitle
+                                       END
+       END,
+       COALESCE(SUBSTRING(usertitle FROM '<span style="color:(#?\w+)">'),
+                SUBSTRING(usertitle FROM '<font color="(\w+)">')),
+       SUBSTRING(usertitle FROM '<span style="opacity:(\w+).*">')::INT, -- Just for Alex
        TO_TIMESTAMP(u.joindate),
        u.posts,
        ut.signature,
@@ -347,27 +361,44 @@ WITH RECURSIVE parents(id, parent_id) AS (SELECT f.id, f.parent_id
                                                    JOIN forum f ON p.parent_id = f.id)
 UPDATE forum f
 SET topics_count = (SELECT COUNT(*)
-                    FROM topic t JOIN parents p ON t.forum_id = p.id
-                    WHERE p.parent_id = f.id AND NOT t.hidden),
-    posts_count  = coalesce((SELECT SUM(t.post_count)
-                             FROM topic t JOIN parents p ON t.forum_id = p.id
-                             WHERE p.parent_id = f.id AND NOT t.hidden), 0)
+                    FROM topic t
+                             JOIN parents p ON t.forum_id = p.id
+                    WHERE p.parent_id = f.id
+                      AND NOT t.hidden),
+    posts_count  = COALESCE((SELECT SUM(t.post_count)
+                             FROM topic t
+                                      JOIN parents p ON t.forum_id = p.id
+                             WHERE p.parent_id = f.id
+                               AND NOT t.hidden), 0)
 WHERE TRUE;
 
 CREATE VIEW last_post_in_topic AS
-SELECT p.topic_id, max(p.id) as post_id FROM post p GROUP BY p.topic_id;
+SELECT p.topic_id, MAX(p.id) AS post_id
+FROM post p
+GROUP BY p.topic_id;
 -- SELECT p.topic_id, p.id AS post_id
 -- FROM post p
 --          JOIN (SELECT p.topic_id, MAX(p.created_at) AS last_posted_at FROM post p GROUP BY p.topic_id) mp
 --               ON p.topic_id = mp.topic_id AND p.created_at = mp.last_posted_at;
 
 CREATE MATERIALIZED VIEW post_idx AS
-SELECT id, ROW_NUMBER() OVER (PARTITION BY topic_id ORDER BY created_at) as idx
-FROM post WHERE deleted_at IS NULL AND NOT hidden;
+SELECT id, ROW_NUMBER() OVER (PARTITION BY topic_id ORDER BY created_at) AS idx
+FROM post
+WHERE deleted_at IS NULL
+  AND NOT hidden;
+
+CREATE VIEW last_edit_for_post AS
+SELECT peh.post_id, MAX(peh.id) as post_edit_id
+FROM post_edit_history peh
+GROUP BY peh.post_id;
 
 CREATE VIEW forum_full_slug AS
-WITH RECURSIVE rec(id, url) AS (
-    SELECT id, ARRAY[]::TEXT[] FROM forum WHERE parent_id IS NULL
-    UNION ALL SELECT p.id, ARRAY_APPEND(rec.url, p.slug) FROM forum p JOIN rec ON p.parent_id = rec.id
-)
-SELECT rec.id, rec.url as slug FROM rec;
+WITH RECURSIVE rec(id, url) AS (SELECT id, ARRAY []::TEXT[]
+                                FROM forum
+                                WHERE parent_id IS NULL
+                                UNION ALL
+                                SELECT p.id, ARRAY_APPEND(rec.url, p.slug)
+                                FROM forum p
+                                         JOIN rec ON p.parent_id = rec.id)
+SELECT rec.id, rec.url AS slug
+FROM rec;

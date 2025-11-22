@@ -257,7 +257,7 @@ export const customPreset = vuePreset.extend((defTags) => ({
         border: '1px solid var(--bulma-text)',
         padding: '0.5rem',
         verticalAlign: 'middle',
-      }
+      },
     },
     tag: 'td',
   }),
@@ -419,8 +419,6 @@ const plugins = [
   ]),
   lineBreakPlugin(),
 ]
-
-
 
 export const BbcodeRenderer = defineComponent({
   props: {

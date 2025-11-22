@@ -56,7 +56,7 @@ export function usePosts(topicId: Ref<number | string>, params: Ref<{ q?: string
   return useQuery({
     queryKey: ['api', 'topics', topicId, 'posts', params],
     queryFn: ({ signal }) => api.get<Post[]>(`/api/topics/${topicId.value}/posts`, { ...params.value }, signal),
-    // placeholderData: keepPreviousData, //TODO: Only for current topic
+    placeholderData: keepPreviousData, //TODO: Only for current topic
   })
 }
 

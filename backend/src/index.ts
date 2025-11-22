@@ -24,6 +24,7 @@ import miscRoutes from './routes/misc.js'
 import interopRoutes from './routes/interop.js'
 import searchRoutes from './routes/search.js'
 import ssrRoutes from './routes/frontend.js'
+import authRoutes from './routes/auth.js'
 
 prisma.$on('error', (event) => rootLogger.error(event))
 prisma.$on('warn', (event) => rootLogger.warn(event))
@@ -75,6 +76,7 @@ app.route('/api', userRoutes)
 app.route('/api', miscRoutes)
 app.route('/api', searchRoutes)
 app.route('/', interopRoutes)
+app.route('/', authRoutes)
 app.route('/', ssrRoutes)
 
 app.onError((err, c) => {

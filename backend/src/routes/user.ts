@@ -109,6 +109,7 @@ const app = new Hono()
     async (c) => {
       const { userId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')
+      const logger = c.get('logger')
       const user = await prisma.user.findUnique({
         select: {
           Avatar: {

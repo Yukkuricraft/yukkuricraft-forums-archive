@@ -8,7 +8,7 @@ const options = {
   ],
 } satisfies Prisma.PrismaClientOptions
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient<typeof options, 'error' | 'warn'> }
+const globalForPrisma = global as unknown as { prisma: PrismaClient<'query' | 'error' | 'warn'> }
 
 export const prisma = globalForPrisma.prisma || new PrismaClient(options)
 
