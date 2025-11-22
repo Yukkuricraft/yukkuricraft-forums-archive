@@ -9,11 +9,11 @@ const app = new Hono().get(
     'query',
     z.object({
       q: z.string().optional(),
-      page: z.string().pipe(z.coerce.number().int().positive().min(1)).default('1'),
-      pageSize: z.string().pipe(z.coerce.number().int().positive().max(30).min(1)).default('10'),
+      page: z.string().pipe(z.coerce.number()).pipe(z.int().positive().min(1)).default(1),
+      pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30)).default(10),
     }),
   ),
-  zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number().int()) })),
+  zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
   async (c) => {
     const { page, q, pageSize } = c.req.valid('query')
     const { topicId } = c.req.valid('param')

@@ -1,6 +1,5 @@
 import { useRouteQuery } from '@vueuse/router'
-import type { MaybeRefOrGetter } from '@vueuse/core'
-import { type MaybeRef, type Ref } from 'vue'
+import { type MaybeRef, type Ref, type MaybeRefOrGetter } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import z from 'zod'
 

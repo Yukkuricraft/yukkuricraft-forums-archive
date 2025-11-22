@@ -90,7 +90,10 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     if (/^\d+/gm.test(forumSlug)) {
       res.push({
         text: topicStore.currentTopic?.title ?? forumSlug,
-        to: { name: 'posts', params: { forumPath: [...forumPath] } },
+        to: {
+          name: 'posts',
+          params: { sectionSlug, forumPath: [...forumPath], topic: topicStore.currentTopic?.slug, topicId: topicStore.currentTopic?.id },
+        },
         key: `home/${sectionSlug}/${forumPath.join('/')}/${forumSlug}`,
       })
       break

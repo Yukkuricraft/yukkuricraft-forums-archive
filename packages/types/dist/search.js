@@ -33,11 +33,11 @@ export const searchJsonObj = z.object({
     })
         .optional(),
     view: z.enum(['default', '', 'topic']).optional(),
-    channel: z.array(z.string().pipe(z.coerce.number().int())).optional(),
+    channel: z.array(z.string().pipe(z.coerce.number()).pipe(z.int())).optional(),
 });
 export const queryParams = z.object({
     q: z.string().optional(),
-    p: z.string().pipe(z.coerce.number().int().min(1)).default('1'),
+    p: z.string().pipe(z.coerce.number()).pipe(z.int().min(1)).default(1),
     searchJSON: zJson.pipe(searchJsonObj),
 });
 export function postQuery(kysely, params) {

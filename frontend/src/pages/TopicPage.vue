@@ -2,7 +2,7 @@
   <div>
     <h1 v-if="currentTopic" class="title is-2">{{ currentTopic.title }}</h1>
 
-    <ForumPost v-for="post in posts" :key="'post-' + post.id" :post="post" />
+    <ForumPost v-for="post in posts" :key="'post-' + post.id" :post="post" :page-props="props" />
 
     <Pagination
       v-if="currentTopic"

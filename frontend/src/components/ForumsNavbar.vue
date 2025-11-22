@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onServerPrefetch, ref } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useQuery } from '@tanstack/vue-query'
 import { NotFoundError, useApi } from '@/util/Api.ts'
@@ -82,7 +82,7 @@ const navbarExpanded = ref(false)
 const searchInput = ref('')
 
 const api = useApi()
-const { data: activeUser, isLoading: activeUserLoading } = useQuery({
+const { data: activeUser, isLoading: activeUserLoading, suspense: activeUserSuspense } = useQuery({
   queryKey: ['api', '@me'],
   queryFn: async ({ signal }) => {
     try {
@@ -96,4 +96,6 @@ const { data: activeUser, isLoading: activeUserLoading } = useQuery({
     }
   },
 })
+
+onServerPrefetch(activeUserSuspense)
 </script>

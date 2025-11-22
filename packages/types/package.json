@@ -18,11 +18,11 @@
   "devDependencies": {
     "@yukkuricraft-forums-archive/eslint-config": "workspace:*",
     "@yukkuricraft-forums-archive/ts-config": "workspace:*",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@yukkuricraft-forums-archive/database": "workspace:*",
     "kysely": "^0.28.8",
-    "zod": "^3.25.57"
+    "zod": "^4.1.12"
   }
 }

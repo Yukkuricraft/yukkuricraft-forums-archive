@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "packageManager": "yarn@4.9.1"
 }

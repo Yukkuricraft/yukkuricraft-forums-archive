@@ -4,7 +4,7 @@
     "build": {
       "dependsOn": ["^build", "db:generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env"],
-      "env": ["NODE_ENV"]
+      "env": ["NODE_ENV", "DB_URL"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]

@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DB_URL")
 }
 
 generator client {
@@ -8,6 +7,7 @@ generator client {
   previewFeatures = ["typedSql", "views", "relationJoins", "fullTextSearchPostgres"]
   output          = "../generated/prisma"
   moduleFormat    = "esm"
+  engineType      = "client"
 }
 
 generator kysely {

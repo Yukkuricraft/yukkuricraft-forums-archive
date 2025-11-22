@@ -47,5 +47,16 @@ export function createYcForumsRouter() {
         props: true,
       },
     ],
+    scrollBehavior(to, from, savedPosition) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (savedPosition) {
+            return resolve(savedPosition)
+          } else {
+            return resolve({ left: 0, top: 0, behavior: 'smooth' })
+          }
+        }, 100)
+      })
+    },
   })
 }

@@ -32,7 +32,7 @@
           <div class="is-flex is-justify-content-space-between">
             <small class="is-size-7">{{ localeStore.formatDate(post.createdAt) }}</small>
             <router-link
-              :to="{ name: 'posts', params: { ...route.params }, query: { p: post.id }, hash: `#post${post.id}` }"
+              :to="{ name: 'posts', params: pageProps, query: { p: post.id }, hash: `#post${post.id}` }"
             >
               #{{ post.idx }}
             </router-link>
@@ -64,18 +64,22 @@ import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { useUser } from '@/composables/apiComposables.ts'
-import { useRoute } from 'vue-router'
 
 const localeStore = useLocaleStore()
 
 const props = defineProps<{
   post: Post
+  pageProps: {
+    sectionSlug: string
+    forumPath: string[]
+    topic: string
+    topicId: string
+    pageStr?: string
+  }
 }>()
 
 const { data: creator, suspense: creatorSuspense } = useUser(computed(() => props.post.creatorId))
 const { data: lastEditUser, suspense: lastEditUserSuspense } = useUser(computed(() => props.post.postEditCreatorId))
-
-const route = useRoute()
 
 onServerPrefetch(async () => {
   await creatorSuspense()

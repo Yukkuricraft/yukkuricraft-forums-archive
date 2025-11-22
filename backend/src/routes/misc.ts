@@ -6,7 +6,7 @@ import AppError from '../AppError.js'
 
 const app = new Hono().get(
   'unknownObject/:id',
-  zValidator('param', z.object({ id: z.string().pipe(z.coerce.number().int()) })),
+  zValidator('param', z.object({ id: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
   async (c) => {
     const { id } = c.req.valid('param')
     const prisma: PrismaClient = c.get('prisma')

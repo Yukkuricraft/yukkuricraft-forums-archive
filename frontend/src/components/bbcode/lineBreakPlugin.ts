@@ -45,6 +45,10 @@ const walkNode = (t: NodeContent): NodeContent | NodeContent[] => {
     }
   }
 
+  if (typeof tree === 'string' && tree.includes('\r')) {
+    console.log('found \r in string', tree)
+  }
+
   if (typeof tree === 'string' && isEOL(tree)) {
     return [{ tag: 'br', attrs: {}, content: null }]
   }

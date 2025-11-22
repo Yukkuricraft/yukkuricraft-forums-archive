@@ -4,7 +4,7 @@ import BbcodeSpoiler from '@/components/bbcode/BbcodeSpoiler.vue'
 import bbob from '@bbob/core'
 import { lineBreakPlugin } from '@/components/bbcode/lineBreakPlugin.ts'
 import type { BBobCoreTagNodeTree, BBobPluginFunction, NodeContent, TagNodeObject } from '@bbob/types'
-import { defineComponent, type Component } from 'vue'
+import { type Component, defineComponent } from 'vue'
 import BbcodeQuote from '@/components/bbcode/BbcodeQuote.vue'
 import { parse } from '@bbob/parser'
 import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
@@ -244,6 +244,10 @@ export const customPreset = vuePreset.extend((defTags) => ({
     },
     tag: 'pre',
   }),
+  codei: (node) => ({
+    content: node,
+    tag: 'code',
+  }),
   // They are gone, and there's not much we can do to bring them back
   sigpic: () => ({
     content: 'sigpic',
@@ -363,6 +367,18 @@ function unparseTree(tree: TagNodeObject): string {
   return `[${tree.tag}${strAttr}]${strContent.join('')}[/${tree.tag}]`
 }
 
+function lowercaseTags() {
+  return (tree: BBobCoreTagNodeTree) =>
+    tree.walk((content) => {
+      if (content && typeof content === 'object') {
+        return {
+          ...content,
+          tag: content.tag.toLowerCase(),
+        } satisfies TagNodeObject
+      } else return content
+    })
+}
+
 function sanitizePlugin(allowedTags: (string | Component)[]): BBobPluginFunction {
   return (tree: BBobCoreTagNodeTree) =>
     tree.walk((content) => {
@@ -396,7 +412,54 @@ function sanitizePlugin(allowedTags: (string | Component)[]): BBobPluginFunction
     })
 }
 
+export const mergeStringsPlugin: () => BBobPluginFunction = () => {
+  const walkNode = (t: NodeContent): NodeContent => {
+    const tree = t
+
+    if (tree && typeof tree === 'object' && tree.content) {
+      if (Array.isArray(tree.content)) {
+        const arraryRes = walkArr(tree.content)
+        if (!Array.isArray(arraryRes)) {
+          return arraryRes
+        }
+      } else {
+        walkNode(tree.content)
+      }
+    }
+
+    return tree
+  }
+
+  const walkArr = (tree: NodeContent[]): NodeContent[] | NodeContent => {
+    let currentString = ''
+    let result: NodeContent[] = []
+
+    let elem
+    while ((elem = tree.shift())) {
+      if (typeof elem === 'string') {
+        currentString += elem
+      } else {
+        if (currentString.length > 0) {
+          result.push(currentString)
+          currentString = ''
+        }
+        result.push(walkNode(elem))
+      }
+    }
+    if (currentString.length > 0) {
+      result.push(currentString)
+    }
+
+    tree.push(...result)
+    return tree
+  }
+
+  return (tree: BBobCoreTagNodeTree) => walkArr(tree) as BBobCoreTagNodeTree
+  //return (tree: BBobCoreTagNodeTree) => tree
+}
+
 const plugins = [
+  lowercaseTags(),
   customPreset(),
   sanitizePlugin([
     BbcodeVideo,
@@ -416,8 +479,10 @@ const plugins = [
     'td',
     'table',
     'tbody',
+    'code',
   ]),
   lineBreakPlugin(),
+  mergeStringsPlugin()
 ]
 
 export const BbcodeRenderer = defineComponent({
@@ -425,32 +490,43 @@ export const BbcodeRenderer = defineComponent({
     content: String,
   },
   setup(props) {
-    function renderContentToVNode(node: NodeContent, depth: number) {
+    function renderContentToVNode(node: NodeContent) {
       if (node && typeof node === 'object') {
         const innerContent = node.content
-        const arrContent = innerContent === undefined ? [] : Array.isArray(innerContent) ? innerContent : [innerContent]
+        const renderedContent =
+          innerContent === undefined || innerContent === null
+            ? []
+            : Array.isArray(innerContent)
+              ? renderTreeToVNodes(innerContent)
+              : renderContentToVNode(innerContent)
 
         if (typeof node.tag === 'string') {
-          return <node.tag {...node.attrs}>{renderTreeToVNodes(arrContent, depth + 1)}</node.tag>
+          switch (node.tag) {
+            case 'br':
+            case 'hr':
+            case 'img':
+              return <node.tag {...node.attrs} />
+            default:
+              return <node.tag {...node.attrs}>{renderedContent}</node.tag>
+          }
         } else {
-          return (
-            <node.tag {...node.attrs}>
-              {{
-                default: () => renderTreeToVNodes(arrContent, depth + 1),
-              }}
-            </node.tag>
-          )
+          return <node.tag {...node.attrs}>{{ default: () => renderedContent }}</node.tag>
         }
       } else {
-        return <>{node}</>
+        return node
       }
     }
 
-    function renderTreeToVNodes(tree: NodeContent[], depth: number) {
-      return <>{tree.map((content) => renderContentToVNode(content, depth + 1))}</>
+    function renderTreeToVNodes(tree: NodeContent[]) {
+      return tree.map((content) => renderContentToVNode(content))
     }
 
-    const tree = bbob(plugins).process(decodeHtmlEntities(props.content ?? ''), {
+    let content = props.content
+    if (props.content?.includes('\r')) {
+      content = props.content?.replaceAll('\r\n', '\n')
+    }
+
+    const tree = bbob(plugins).process(decodeHtmlEntities(content ?? ''), {
       skipParse: false,
       parser: parse,
       render: () => '',
@@ -487,10 +563,11 @@ export const BbcodeRenderer = defineComponent({
         'table',
         'img2',
         'indent',
+        'codei'
       ],
       caseFreeTags: true,
     }).tree
 
-    return () => <div>{renderTreeToVNodes(tree, 0)}</div>
+    return () => <div>{renderTreeToVNodes(tree)}</div>
   },
 })

@@ -43,9 +43,6 @@ COPY --from=installer --chown=hono:nodejs /app/backend/package.json /app/package
 USER hono
 EXPOSE 3000
 
-RUN yarn global add extensionless
-
 ENV NODE_ENV=production
 
-# --import=extensionless/register is because bbob is stupid
-CMD ["node", "--import=extensionless/register", "/app/dist/index.js"]
+CMD ["node", "/app/dist/index.js"]

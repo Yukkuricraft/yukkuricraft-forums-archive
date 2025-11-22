@@ -29,16 +29,20 @@
   },
   "private": true,
   "dependencies": {
-    "prisma": "^6.19.0"
+    "@prisma/adapter-pg": "^7.0.0",
+    "dotenv": "^17.2.3",
+    "pg": "^8.16.3",
+    "prisma": "^7.0.0"
   },
   "devDependencies": {
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^7.0.0",
     "@types/copyfiles": "^2.4.4",
-    "@types/node": "^22.15.31",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
     "@yukkuricraft-forums-archive/eslint-config": "workspace:*",
     "@yukkuricraft-forums-archive/ts-config": "workspace:*",
     "copyfiles": "^2.4.1",
     "prisma-kysely": "^2.2.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }

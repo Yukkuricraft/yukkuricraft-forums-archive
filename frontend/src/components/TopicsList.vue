@@ -1,6 +1,6 @@
 <template>
   <h2 class="title is-4 mt-3">Topics</h2>
-  <Topic
+  <TopicSummary
     v-for="topic in topics"
     :key="'topic-' + topic.title"
     :section-slug="sectionSlug"
@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import Topic from '@/components/TopicSummary.vue'
+import TopicSummary from '@/components/TopicSummary.vue'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { useTopics } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'

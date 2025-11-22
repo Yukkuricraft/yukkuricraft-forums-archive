@@ -40,13 +40,13 @@ const app = new Hono()
     zValidator(
       'query',
       z.object({
-        page: z.string().pipe(z.coerce.number().int().positive().min(1)).default('1'),
-        pageSize: z.string().pipe(z.coerce.number().int().positive().max(30).min(1)).default('10'),
+        page: z.string().pipe(z.coerce.number()).pipe(z.int().positive().min(1)).default(1),
+        pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30).min(1)).default(10),
         sortBy: z.enum(['dateLastUpdate', 'dateStartedPost', 'replies', 'title', 'members']).default('dateLastUpdate'),
         order: z.enum(['asc', 'desc']).default('desc'),
       }),
     ),
-    zValidator('param', z.object({ forumId: z.string().pipe(z.coerce.number().int()) })),
+    zValidator('param', z.object({ forumId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
     async (c) => {
       const { page, sortBy, order, pageSize } = c.req.valid('query')
       const { forumId: parentId } = c.req.valid('param')
@@ -81,7 +81,7 @@ const app = new Hono()
         order: z.enum(['asc', 'desc']).default('desc'),
       }),
     ),
-    zValidator('param', z.object({ forumId: z.string().pipe(z.coerce.number().int()) })),
+    zValidator('param', z.object({ forumId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
     async (c) => {
       const { sortBy, order } = c.req.valid('query')
       const { forumId: parentId } = c.req.valid('param')
@@ -107,7 +107,7 @@ const app = new Hono()
   )
   .get(
     'topics/:topicId',
-    zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number().int()) })),
+    zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
     async (c) => {
       const { topicId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')

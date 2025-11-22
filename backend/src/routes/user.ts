@@ -59,7 +59,7 @@ const app = new Hono()
   })
   .get(
     'user/:userId',
-    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number().int()) })),
+    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
     async (c) => {
       const { userId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')
@@ -105,7 +105,7 @@ const app = new Hono()
   })
   .get(
     'user/:userId/avatar',
-    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number().int()) })),
+    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
     async (c) => {
       const { userId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')
@@ -137,7 +137,7 @@ const app = new Hono()
   )
   .get(
     'user/:userId/avatar/thumbnail',
-    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number().int()) })),
+    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
     async (c) => {
       const { userId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')

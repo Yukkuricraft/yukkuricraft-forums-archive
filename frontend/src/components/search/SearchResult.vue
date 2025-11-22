@@ -72,7 +72,7 @@ const { data: searchResults } = useQuery({
       '/api/search',
       {
         q: props.q,
-        searchJSON: JSON.stringify(processedSearchJsonDebounced),
+        searchJSON: JSON.stringify(processedSearchJsonDebounced.value),
         p: p.value,
       },
       signal,
