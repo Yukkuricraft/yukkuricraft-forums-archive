@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import { getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
+import { ensureCanAccessTopic } from './auth.js'
 
 const app = new Hono().get(
   'topics/:topicId/posts',
@@ -18,6 +19,7 @@ const app = new Hono().get(
     const { page, q, pageSize } = c.req.valid('query')
     const { topicId } = c.req.valid('param')
     const prisma = c.get('prismaKysely')
+    await ensureCanAccessTopic(c, topicId)
 
     const res = await getPostsQuery(prisma.$kysely, topicId, q ?? '', pageSize, pageSize * (page - 1)).execute()
 

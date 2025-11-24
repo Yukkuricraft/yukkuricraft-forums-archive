@@ -6,7 +6,11 @@ export interface ForumTree extends Forum {
   subForums: ForumTree[]
 }
 
-export function getForumsBySlugQuery(kysely: Kysely<DB>, slug: string[]) {
+export function getForumsBySlugQuery(
+  kysely: Kysely<DB>,
+  slug: string[],
+  { isAdmin, isStaff }: { isAdmin: boolean; isStaff: boolean },
+) {
   return kysely
     .withRecursive('args(p2)', (db) =>
       db.selectNoFrom((eb) => sql<string[]>`${eb.parens(eb.val(slug))}::TEXT[]`.as('p2')),
@@ -31,5 +35,7 @@ export function getForumsBySlugQuery(kysely: Kysely<DB>, slug: string[]) {
     .selectFrom('forum as f')
     .innerJoin('forum_rec as r', 'f.id', 'r.id')
     .where((eb) => eb('r.id', '!=', eb.lit(1)))
+    .where((eb) => (isAdmin ? eb.lit(true) : eb('f.requiresAdmin', '=', eb.lit(false))))
+    .where((eb) => (isStaff ? eb.lit(true) : eb('f.requiresStaff', '=', eb.lit(false))))
     .selectAll('f')
 }

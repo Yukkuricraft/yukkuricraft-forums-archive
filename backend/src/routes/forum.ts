@@ -4,13 +4,18 @@ import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import AppError from '../AppError.js'
 import { getForumsBySlugQuery } from '@yukkuricraft-forums-archive/types/forum'
+import { ensureCanAccessForum, getAuthInfo } from './auth.js'
 
 async function getForumBySlug(slug: string[], c: Context) {
   const slugWithoutEnd = slug.at(-1)?.length === 0 ? slug.slice(0, -1) : slug
+  const userInfo = await getAuthInfo(c)
 
   const prisma = c.get('prismaKysely')
 
-  const res = await getForumsBySlugQuery(prisma.$kysely, slugWithoutEnd).execute()
+  const res = await getForumsBySlugQuery(prisma.$kysely, slugWithoutEnd, {
+    isAdmin: userInfo?.isAdmin ?? false,
+    isStaff: userInfo?.isStaff ?? false,
+  }).execute()
   if (res.length === 0) {
     return c.json({ error: 'not found' }, 404)
   }
@@ -41,9 +46,17 @@ const app = new Hono()
   .get('forums/:forumId', zValidator('param', z.object({ forumId: z.string().pipe(z.coerce.number()) })), async (c) => {
     const { forumId: parentId } = c.req.valid('param')
     const prisma: PrismaClient = c.get('prisma')
+    const userInfo = await ensureCanAccessForum(c, parentId)
+
     const forums = await prisma.forum.findMany({
       where: {
-        OR: [{ parentId }, { id: parentId }],
+        AND: [
+          {
+            requiresAdmin: userInfo?.isAdmin ? undefined : false,
+            requiresStaff: userInfo?.isStaff ? undefined : false,
+          },
+          { OR: [{ parentId }, { id: parentId }] },
+        ],
       },
     })
 

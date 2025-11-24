@@ -53,6 +53,8 @@ const [template, render, fixStacktrace] = await (async () => {
     return [
       () => Promise.resolve(template),
       async (url: string, port: number, locales: string | string[] | undefined) =>
+        // TODO: Set https here conditionally
+        // TODO: Set base here conditionally
         await render(url, manifest.default, `http://localhost:${port}/`, locales),
       undefined,
     ] as const

@@ -13,11 +13,13 @@ import {
   topicQuery,
   topicSelectQuery,
 } from '@yukkuricraft-forums-archive/types/search'
+import { getAuthInfo } from './auth.js'
 
 const app = new Hono().get('search', zValidator('query', queryParams), async (c) => {
   const params: QueryParams = c.req.valid('query')
   const prisma: PrismaClientWithKysely = c.get('prismaKysely')
   const kysely: Kysely<DB> = prisma.$kysely
+  const authInfo = await getAuthInfo(c)
 
   let sortOrDefault = params.searchJSON.sort
   if (!sortOrDefault) {
@@ -29,6 +31,14 @@ const app = new Hono().get('search', zValidator('query', queryParams), async (c)
 
   if (params.searchJSON.title_only || params.searchJSON.starter_only || params.searchJSON.view === 'topic') {
     let query = topicSelectQuery(kysely, params)
+
+    if (!authInfo?.isAdmin) {
+      query = query.where('f.requiresAdmin', '=', false)
+    }
+
+    if (!authInfo?.isStaff) {
+      query = query.where('f.requiresStaff', '=', false)
+    }
 
     if (sortOrDefault.relevance) {
       query = query.orderBy('rank', sortOrDefault.relevance)
@@ -62,6 +72,14 @@ const app = new Hono().get('search', zValidator('query', queryParams), async (c)
     return c.json({ results: res.map((o) => makeTopicOutObj(o)), total: Number(count), type: 'topic' })
   } else {
     let query = postSelectQuery(kysely, params)
+
+    if (!authInfo?.isAdmin) {
+      query = query.where('f.requiresAdmin', '=', false)
+    }
+
+    if (!authInfo?.isStaff) {
+      query = query.where('f.requiresStaff', '=', false)
+    }
 
     if (sortOrDefault.relevance) {
       query = query.orderBy('rank', sortOrDefault.relevance)

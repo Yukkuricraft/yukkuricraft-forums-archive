@@ -60,6 +60,9 @@ model User {
   signature    String?
   avatarId     Int?      @map("avatar")
 
+  isAdmin Boolean @map("is_admin")
+  isStaff Boolean @map("is_staff")
+
   //Profile fields
   biography  String?
   location   String?
@@ -87,6 +90,9 @@ model Forum {
   displayorder Int
   topicsCount  Int     @map("topics_count")
   postsCount   Int     @map("posts_count")
+
+  requiresAdmin Boolean @map("requires_admin")
+  requiresStaff Boolean @map("requires_staff")
 
   Parent   Forum?         @relation("Hierarchy", fields: [parentId], references: [id])
   Children Forum[]        @relation("Hierarchy")

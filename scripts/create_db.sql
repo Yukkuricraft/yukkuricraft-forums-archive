@@ -48,6 +48,9 @@ CREATE TABLE "user"
     signature     TEXT,
     avatar        INT REFERENCES avatar,
 
+    is_staff BOOLEAN NOT NULL,
+    is_admin BOOLEAN NOT NULL,
+
     --Profile fields
     biography     TEXT,
     location      TEXT,
@@ -74,9 +77,8 @@ FROM yc_forum_archive.customavatar ca;
 -- The data here is fauly, and will need to be dumped from the live server
 
 INSERT INTO "user" (id, user_group_id, slug, name, email, title, title_color, title_opacity, created_at, post_count,
-                    signature, avatar,
-                    biography,
-                    location, interests, occupation, in_game_name)
+                    signature, avatar, is_staff, is_admin,
+                    biography, location, interests, occupation, in_game_name)
 SELECT u.userid,
        u.usergroupid,
        REPLACE((XPATH('/z/text()', ('<z>' || u.username || '</z>')::xml))[1]::TEXT, ' ',
@@ -97,6 +99,8 @@ SELECT u.userid,
        u.posts,
        ut.signature,
        ua.id,
+       FALSE,
+       FALSE,
        uf.field1,
        uf.field2,
        uf.field3,
@@ -122,20 +126,37 @@ CREATE TABLE forum
     displayorder INT  NOT NULL,
     topics_count INT  NOT NULL,
     posts_count  INT  NOT NULL,
+
+    requires_staff BOOLEAN NOT NULL,
+    requires_admin BOOLEAN NOT NULL,
+
     UNIQUE (parent_id, slug),
     UNIQUE (parent_id, title)
 );
 
-INSERT INTO forum (id, parent_id, slug, title, description, displayorder, topics_count, posts_count)
-VALUES (1, NULL, '', 'Root', 'Root', 1, 0, 0);
+INSERT INTO forum (id, parent_id, slug, title, description, displayorder, topics_count, posts_count, requires_staff, requires_admin)
+VALUES (1, NULL, '', 'Root', 'Root', 1, 0, 0, FALSE, FALSE);
 
-WITH RECURSIVE t(id) AS
-                   (SELECT n.nodeid
+WITH RECURSIVE t(id, requires_staff, requires_admin) AS
+                   (SELECT n.nodeid, FALSE, FALSE
                     FROM yc_forum_archive.node n
                     WHERE n.parentid = 1
                       AND n.nodeid != 13 -- Home, unused
                     UNION ALL
-                    SELECT n.nodeid
+                    SELECT
+                      n.nodeid,
+                      t.requires_staff OR n.nodeid IN (
+                        29, -- Ban appeals
+                        32 -- Staff sections
+                      ),
+                      t.requires_admin OR n.nodeid IN (
+                        3, -- Blogs
+                        8, -- PMs
+                        10, -- Reports
+                        11, -- Infractions
+                        12, -- CSS Examples
+                        31 -- Administation
+                      )
                     FROM yc_forum_archive.node n
                              JOIN t ON n.parentid = t.id
                     WHERE n.nodeid != 18 --vBCms Comments
@@ -143,7 +164,7 @@ WITH RECURSIVE t(id) AS
                                              FROM yc_forum_archive.contenttype
                                              WHERE class = 'Channel'))
 INSERT
-INTO forum (id, parent_id, slug, title, description, displayorder, topics_count, posts_count)
+INTO forum (id, parent_id, slug, title, description, displayorder, topics_count, posts_count, requires_staff, requires_admin)
 SELECT n.nodeid,
        n.parentid,
        n.urlident,
@@ -151,7 +172,9 @@ SELECT n.nodeid,
        n.description,
        n.displayorder,
        0,
-       0
+       0,
+       t.requires_staff,
+       t.requires_admin
 FROM t
          JOIN yc_forum_archive.node n ON t.id = n.nodeid;
 
