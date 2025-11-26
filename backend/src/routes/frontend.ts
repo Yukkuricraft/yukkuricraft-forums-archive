@@ -79,9 +79,15 @@ const [template, render, fixStacktrace] = await (async () => {
 
     app.use('*', async (c, next) => {
       // A bit hacky, but generally seems to work most of the time
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         try {
-          vite.middlewares(c.env.incoming, c.env.outgoing, resolve)
+          vite.middlewares(c.env.incoming, c.env.outgoing, async (err: any) => {
+            if (err) {
+              return reject(err)
+            } else {
+              return resolve()
+            }
+          })
         } catch (e) {
           reject(e)
         }

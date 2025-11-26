@@ -15,7 +15,7 @@ export function createYcForumsApp() {
 
   app.component('FontAwesomeIcon', FontAwesomeIcon)
 
-  const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
+  const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } })
 
   app.use(pinia)
   app.use(router)

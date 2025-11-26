@@ -1,5 +1,5 @@
 import { sql } from 'kysely';
-export function getForumsBySlugQuery(kysely, slug) {
+export function getForumsBySlugQuery(kysely, slug, { isAdmin, isStaff }) {
     return kysely
         .withRecursive('args(p2)', (db) => db.selectNoFrom((eb) => sql `${eb.parens(eb.val(slug))}::TEXT[]`.as('p2')))
         .withRecursive('forum_rec(n, id)', (db) => db
@@ -16,5 +16,7 @@ export function getForumsBySlugQuery(kysely, slug) {
         .selectFrom('forum as f')
         .innerJoin('forum_rec as r', 'f.id', 'r.id')
         .where((eb) => eb('r.id', '!=', eb.lit(1)))
+        .where((eb) => (isAdmin ? eb.lit(true) : eb('f.requiresAdmin', '=', eb.lit(false))))
+        .where((eb) => (isStaff ? eb.lit(true) : eb('f.requiresStaff', '=', eb.lit(false))))
         .selectAll('f');
 }

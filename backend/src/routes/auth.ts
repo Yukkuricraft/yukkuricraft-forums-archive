@@ -166,7 +166,7 @@ export async function ensureCanAccessForum(c: Context, forumId: number): Promise
     return authInfo
   }
 
-  if (canAccessForum(authInfo, forum)) {
+  if (!canAccessForum(authInfo, forum)) {
     throw new HTTPException(403, { message: 'Forbidden' })
   }
 
@@ -195,7 +195,7 @@ export async function ensureCanAccessTopic(c: Context, topicId: number): Promise
     return authInfo
   }
 
-  if (canAccessForum(authInfo, topic.Forum)) {
+  if (!canAccessForum(authInfo, topic.Forum)) {
     throw new HTTPException(403, { message: 'Forbidden' })
   }
 
