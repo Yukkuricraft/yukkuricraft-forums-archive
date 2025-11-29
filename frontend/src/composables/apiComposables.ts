@@ -1,12 +1,14 @@
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { Api, useApi } from '@/util/Api.ts'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
-import { inject, type InjectionKey, type Ref } from 'vue'
+import { computed, inject, type InjectionKey, type MaybeRef, type Ref } from 'vue'
 import type { TopicsOrderingRequestParams, TopicsRequestParams } from '@/stores/topics.ts'
 import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
 import type { Post } from '@yukkuricraft-forums-archive/types/post'
 import DataLoader from 'dataloader'
 import type { User } from '@yukkuricraft-forums-archive/types/user'
+import type { RouteLocationRaw } from 'vue-router'
+import { pageCount } from '@/util/pathUtils.ts'
 
 export function useRootForums() {
   const api = useApi()
@@ -108,3 +110,85 @@ export function useUsers(userIds: Ref<(number | null | undefined)[]>) {
     queryFn: () => userLoader.loadMany(userIds.value.flatMap((u) => (u ? [u] : []))),
   })
 }
+
+function useUnknownObject(
+  id: Ref<number | string | null | undefined>,
+  extraKey: MaybeRef,
+  enabled: () => boolean = () => true,
+) {
+  const api = useApi()
+  const { data: unknownObject } = useQuery({
+    queryKey: ['api', 'unknownObject', id, extraKey],
+    queryFn: ({ signal }) => {
+      return api.get<
+        | { forum: { forumSlug: string[] } }
+        | { topic: { forumSlug: string[]; topicSlug: string; topicId: number } }
+        | { post: { forumSlug: string[]; topicSlug: string; topicId: number; postIdx: number; postId: number } }
+      >(`/api/unknownObject/${id.value}`, undefined, signal)
+    },
+    enabled: () => id.value !== null && id.value !== undefined && enabled(),
+  })
+
+  return computed<RouteLocationRaw | null>(() => {
+    const res = unknownObject.value
+    if (res) {
+      if ('forum' in res) {
+        const parts = [...res.forum.forumSlug]
+        if (parts[0] === 'forum') {
+          parts.shift()
+        } else {
+          // TODO
+        }
+
+        return {
+          name: 'forum',
+          params: { sectionSlug: parts[0], forumPath: parts.slice(1) },
+        }
+      } else if ('topic' in res) {
+        const parts = [...res.topic.forumSlug]
+        if (parts[0] === 'forum') {
+          parts.shift()
+        } else {
+          // TODO
+        }
+
+        return {
+          name: 'topic',
+          params: {
+            sectionSlug: parts[0],
+            forumPath: parts.slice(1),
+            topic: res.topic.topicSlug,
+            topicId: res.topic.topicId,
+          },
+        }
+      } else {
+        // else post
+        const parts = [...res.post.forumSlug]
+        if (parts[0] === 'forum') {
+          parts.shift()
+        } else {
+          // TODO
+        }
+        const pageSize = 10 // Should be the default
+
+        const page = pageCount(res.post.postIdx, pageSize)
+
+        return {
+          name: 'topic',
+          params: {
+            sectionSlug: parts[0],
+            forumPath: parts.slice(1),
+            topicId: res.post.topicId,
+            topic: res.post.topicSlug,
+            pageStr: `page${page}`,
+          },
+          hash: `#post${res.post.postId}`,
+        }
+      }
+    }
+
+    return null
+  })
+}
+
+export default useUnknownObject

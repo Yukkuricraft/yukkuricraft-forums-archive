@@ -80,7 +80,9 @@ const app = new Hono().get(
     }
 
     if (topicRes) {
-      return c.json({ topic: { forumSlug: topicRes.Forum.FullSlug?.slug, topicSlug: topicRes.slug } })
+      return c.json({
+        topic: { forumSlug: topicRes.Forum.FullSlug?.slug, topicSlug: topicRes.slug, topicId: topicRes.id },
+      })
     }
 
     if (postRes) {
@@ -88,7 +90,9 @@ const app = new Hono().get(
         post: {
           forumSlug: postRes.Topic.Forum.FullSlug?.slug,
           topicSlug: postRes.Topic.slug,
-          idx: postRes.PostIdx!.idx,
+          topicId: postRes.Topic.id,
+          postIdx: postRes.PostIdx!.idx,
+          postId: postRes.id,
         },
       })
     }

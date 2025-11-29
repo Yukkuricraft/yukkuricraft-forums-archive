@@ -4,22 +4,7 @@
     <div style="flex: 1">
       <template v-if="referencedUser">
         Originally posted by <strong>{{ referencedUser }}</strong>
-        <!-- TODO -->
-        <router-link
-          v-if="referencedPost"
-          class="ml-1"
-          :to="{
-            name: 'posts',
-            params: {
-              sectionSlug: 'sectionSlug',
-              forumPath: 'forumPath',
-              topicId: 1,
-              topic: 'topic',
-              pageStr: 'page1',
-            },
-            hash: `#post${referencedPost}`,
-          }"
-        >
+        <router-link v-if="postReferenceRoute" class="ml-1" :to="postReferenceRoute">
           <FontAwesomeIcon :icon="faLink" />
         </router-link>
         <br />
@@ -32,9 +17,16 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faLink, faQuoteLeft } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
+import useUnknownObject from '@/composables/apiComposables.ts'
 
-defineProps<{
+const props = defineProps<{
   referencedUser?: string | null
   referencedPost?: string | null
 }>()
+
+const postReferenceRoute = useUnknownObject(
+  computed(() => props.referencedPost),
+  '',
+)
 </script>
