@@ -170,8 +170,7 @@ export function topicSelectQuery(kysely, params) {
     ])
         .select((eb) => eb
         .fn('TS_RANK_CD', [
-        //sql.ref('t.ts_vector'), //TODO
-        eb.fn('TO_TSVECTOR', [sql.lit('english'), 't.title']),
+        sql.ref('t.ts_vector'),
         eb.fn('websearch_to_tsquery', [sql.lit('english'), eb.val(params.searchJSON.keywords ?? params.q ?? '')]),
     ])
         .as('rank'));
