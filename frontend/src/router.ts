@@ -1,12 +1,20 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from '@/pages/HomePage.vue'
-import SectionPage from '@/pages/SectionPage.vue'
-import ForumPage from '@/pages/ForumPage.vue'
 import TopicPage from '@/pages/TopicPage.vue'
 import UserPage from '@/pages/UserPage.vue'
 import SearchPage from '@/pages/SearchPage.vue'
 import AboutPage from '@/pages/AboutPage.vue'
+import type { ForumRoute, TopicRoute } from '@/util/RouteTypes.ts'
+import ForumOrSectionPage from '@/pages/ForumOrSectionPage.vue'
+
+function first(str: string | string[]): string {
+  return Array.isArray(str) ? str[0] : str
+}
+
+function arr(str: string | string[]): string[] {
+  return Array.isArray(str) ? str : [str]
+}
 
 export function createYcForumsRouter() {
   return createRouter({
@@ -23,34 +31,40 @@ export function createYcForumsRouter() {
         component: AboutPage,
       },
       {
-        path: '/forum/:sectionSlug?',
-        name: 'section',
-        component: SectionPage,
-        props: true,
-      },
-      {
-        path: `/forum/:sectionSlug/:forumPath((?!page\\d+\\)[^/]+)+/:pageStr(page\\d+)?`,
-        name: 'forum',
-        component: ForumPage,
-        props: true,
-      },
-      {
-        path: `/forum/:sectionSlug/:forumPath((?!page\\d+\\)[^/]+)+/:topicId(\\d+)-:topic/:pageStr(page\\d+)?`,
-        name: 'posts',
-        component: TopicPage,
-        props: true,
-      },
-      {
         path: '/search',
         name: 'search',
         component: SearchPage,
         props: true,
       },
       {
-        path: '/members/:userId-:userName',
+        path: '/member/:userId-:userName',
         name: 'user',
         component: UserPage,
         props: true,
+      },
+      {
+        path: `/:forumPath((?!page\\d+\\)(?!member\\)[^/]+)+/:pageStr(page\\d+)?`,
+        name: 'forum',
+        component: ForumOrSectionPage,
+        props: (route) => ({
+          routeParams: {
+            forumPath: arr(route.params.forumPath),
+          } satisfies ForumRoute,
+          pageStr: route.params.pageStr,
+        }),
+      },
+      {
+        path: `/:forumPath((?!page\\d+\\)(?!member\\)[^/]+)+/:topicId(\\d+)-:topic?/:pageStr(page\\d+)?`,
+        name: 'posts',
+        component: TopicPage,
+        props: (route) => ({
+          routeParams: {
+            forumPath: arr(route.params.forumPath),
+            topic: first(route.params.topic),
+          } satisfies TopicRoute,
+          topicId: route.params.topicId,
+          pageStr: route.params.pageStr,
+        }),
       },
     ],
     scrollBehavior(to, from, savedPosition) {

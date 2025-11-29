@@ -1,7 +1,13 @@
 <template>
   <h1 class="title is-size-3">Yukkuricraft</h1>
 
-  <ForumSection v-for="section in forumForums" :key="'section-' + section.slug" :forum="section" :heading-level="2" />
+  <ForumSection
+    v-for="section in forumForums"
+    :key="'section-' + section.slug"
+    :forum="section"
+    :route-params="{ forumPath: ['forum'] }"
+    :heading-level="2"
+  />
 </template>
 
 <script setup lang="ts">

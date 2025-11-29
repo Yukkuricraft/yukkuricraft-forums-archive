@@ -17,7 +17,7 @@
             <router-link
               :to="{
                 name: 'posts',
-                params: { sectionSlug, forumPath: forumPath, topic: topic.slug, topicId: topic.id },
+                params: { ...routeParams, topic: topic.slug, topicId: topic.id },
               }"
               @click="topicStore.selectTopic(topic)"
             >
@@ -84,11 +84,12 @@ import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 import { useTopicsStore } from '@/stores/topics.ts'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { useUser } from '@/composables/apiComposables.ts'
+import type { ForumRoute } from '@/util/RouteTypes.ts'
 
 const topicStore = useTopicsStore()
 const localeStore = useLocaleStore()
 
-const props = defineProps<{ topic: Topic; sectionSlug: string; forumPath: string[] }>()
+const props = defineProps<{ topic: Topic; routeParams: ForumRoute }>()
 
 const { data: creator, suspense: creatorSuspense } = await useUser(computed(() => props.topic.creatorId))
 const { data: lastPostUser, suspense: lastPostUserSuspense } = await useUser(

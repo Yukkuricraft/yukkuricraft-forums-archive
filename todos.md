@@ -5,7 +5,8 @@
 3. Non-forum forums and topics
 4. Test dockerization
 5. User page
-6. Search for TODO and fix (Only if it's bad)
+6. Fix going from post page to post page (for example from infractions)
+7. Search for TODO and fix (Only if it's bad)
 
 # BBCode hell
 

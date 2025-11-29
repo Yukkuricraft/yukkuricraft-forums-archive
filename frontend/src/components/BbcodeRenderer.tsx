@@ -8,6 +8,7 @@ import { type Component, defineComponent } from 'vue'
 import BbcodeQuote from '@/components/bbcode/BbcodeQuote.vue'
 import { parse } from '@bbob/parser'
 import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
+import { RouterLink } from 'vue-router'
 
 function attr(attrs: Record<string, unknown> | undefined) {
   const entries = Object.entries(attrs ?? {})
@@ -36,11 +37,19 @@ function validateUrl(urlStr: string): string | undefined {
   try {
     const url = new URL(urlStr)
     if (url.protocol === 'https:' || url.protocol === 'http:') {
-      return url.href
+      return urlStr
     }
     console.warn('Invalid url', url)
   } catch (e) {
-    console.warn('Invalid url', urlStr, e)
+    try {
+      const url = new URL('.' + urlStr, 'http://localhost:3000')
+      if (url.protocol === 'https:' || url.protocol === 'http:') {
+        return urlStr
+      }
+      console.warn('Invalid url', url)
+    } catch (e2) {
+      console.warn('Invalid url', urlStr, e, e2)
+    }
   }
 
   return undefined
@@ -151,24 +160,44 @@ export const customPreset = vuePreset.extend((defTags) => ({
     })(),
     tag: BbcodeQuote,
   }),
-  url: (node) => ({
-    ...node,
-    attrs: {
-      href: (() => {
-        let reference = attr(node.attrs) ?? node.content
-        if (Array.isArray(reference) && reference.length === 1) {
-          reference = reference[0]
-        }
+  url: (node) => {
+    let reference = attr(node.attrs) ?? node.content
+    if (Array.isArray(reference) && reference.length === 1) {
+      reference = reference[0]
+    }
+    let spanRes = {
+      ...node,
+      attrs: {},
+      tag: 'span',
+    }
 
-        if (typeof reference !== 'string') {
-          return undefined
-        }
+    if (typeof reference !== 'string') {
+      return spanRes
+    }
 
-        return validateUrl(reference)
-      })(),
-    },
-    tag: 'a',
-  }),
+    const url = validateUrl(reference)
+    if (!url) {
+      return spanRes
+    }
+
+    if (url.startsWith('/')) {
+      return {
+        ...node,
+        attrs: {
+          to: url,
+        },
+        tag: RouterLink,
+      }
+    } else {
+      return {
+        ...node,
+        attrs: {
+          href: url,
+        },
+        tag: 'a',
+      }
+    }
+  },
   img: (node) => ({
     ...node,
     content: '',
@@ -465,6 +494,7 @@ const plugins = [
     BbcodeVideo,
     BbcodeSpoiler,
     BbcodeQuote,
+    RouterLink,
     'span',
     'a',
     'img',
@@ -482,7 +512,7 @@ const plugins = [
     'code',
   ]),
   lineBreakPlugin(),
-  mergeStringsPlugin()
+  mergeStringsPlugin(),
 ]
 
 export const BbcodeRenderer = defineComponent({
@@ -563,7 +593,7 @@ export const BbcodeRenderer = defineComponent({
         'table',
         'img2',
         'indent',
-        'codei'
+        'codei',
       ],
       caseFreeTags: true,
     }).tree

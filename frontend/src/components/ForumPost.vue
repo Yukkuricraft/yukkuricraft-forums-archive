@@ -32,7 +32,12 @@
           <div class="is-flex is-justify-content-space-between">
             <small class="is-size-7">{{ localeStore.formatDate(post.createdAt) }}</small>
             <router-link
-              :to="{ name: 'posts', params: pageProps, query: { p: post.id }, hash: `#post${post.id}` }"
+              :to="{
+                name: 'posts',
+                params: { ...pageProps.routeParams, topicId: pageProps.topicId, pageStr: pageProps.pageStr },
+                query: { p: post.id },
+                hash: `#post${post.id}`,
+              }"
             >
               #{{ post.idx }}
             </router-link>
@@ -64,15 +69,14 @@ import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { useUser } from '@/composables/apiComposables.ts'
+import type { TopicRoute } from '@/util/RouteTypes.ts'
 
 const localeStore = useLocaleStore()
 
 const props = defineProps<{
   post: Post
   pageProps: {
-    sectionSlug: string
-    forumPath: string[]
-    topic: string
+    routeParams: TopicRoute
     topicId: string
     pageStr?: string
   }

@@ -63,6 +63,7 @@
     "bulma": "^1.0.4",
     "dataloader": "^2.2.3",
     "he": "^1.2.0",
+    "html-entities": "^2.6.0",
     "markdown-it": "^14.1.0",
     "pinia": "^3.0.4",
     "unhead": "^2.0.19",

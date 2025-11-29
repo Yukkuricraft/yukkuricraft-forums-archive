@@ -3,8 +3,7 @@
   <TopicSummary
     v-for="topic in topics"
     :key="'topic-' + topic.title"
-    :section-slug="sectionSlug"
-    :forum-path="forumPath"
+    :route-params="routeParams"
     :topic="topic"
   />
 </template>
@@ -15,10 +14,10 @@ import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { useTopics } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'
 import type { TopicsOrderingRequestParams } from '@/stores/topics.ts'
+import type { ForumRoute } from '@/util/RouteTypes.ts'
 
 const props = defineProps<{
-  sectionSlug: string
-  forumPath: string[]
+  routeParams: ForumRoute
   forum: ForumTree
   page: number
   sortBy: TopicsOrderingRequestParams['sortBy']

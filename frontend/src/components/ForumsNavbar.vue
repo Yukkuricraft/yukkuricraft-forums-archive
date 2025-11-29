@@ -22,8 +22,13 @@
       </div>
 
       <div class="navbar-menu" :class="{ 'is-active': navbarExpanded }">
-        <div class="navbar-end">
+        <div class="navbar-start">
+          <router-link class="navbar-item has-text-white" :to="{ name: 'forum', params: {forumPath: ['groups']} }">
+            Groups
+          </router-link>
           <router-link class="navbar-item has-text-white" :to="{ name: 'about' }">About</router-link>
+        </div>
+        <div class="navbar-end">
           <div class="navbar-item">
             <label id="navbarSearch" class="sr-only"></label>
             <div class="field has-addons">

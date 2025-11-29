@@ -4,8 +4,7 @@
     v-for="topic in stickyTopics"
     :key="'stickytopic-' + topic.title"
     :topic="topic"
-    :section-slug="sectionSlug"
-    :forum-path="forumPath"
+    :route-params="routeParams"
   />
 </template>
 
@@ -15,10 +14,10 @@ import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { useStickyTopics } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'
 import type { TopicsOrderingRequestParams } from '@/stores/topics.ts'
+import type { ForumRoute } from '@/util/RouteTypes.ts'
 
 const props = defineProps<{
-  sectionSlug: string
-  forumPath: string[]
+  routeParams: ForumRoute
   forum: ForumTree
   sortBy: TopicsOrderingRequestParams['sortBy']
   order: TopicsOrderingRequestParams['order']

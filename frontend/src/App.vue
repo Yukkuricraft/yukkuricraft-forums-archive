@@ -43,9 +43,10 @@ import Navbar from './components/ForumsNavbar.vue'
 import Footer from './components/YcFooter.vue'
 import { useTopicsStore } from '@/stores/topics.ts'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
-import { useForumForums } from '@/composables/apiComposables.ts'
+import { useRootForums } from '@/composables/apiComposables.ts'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-const { data: forumForums, suspense } = useForumForums()
+const { data: rootForums, suspense } = useRootForums()
 
 const topicStore = useTopicsStore()
 
@@ -58,7 +59,7 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
   if (strPath === '/') {
     return []
   }
-  const path = strPath.split('/').slice(2)
+  const path = strPath.split('/').slice(1)
 
   if (/page\d+/gm.test(path[path.length - 1])) {
     path.pop()
@@ -71,20 +72,22 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     key: 'home',
   })
 
-  const sectionSlug = path.shift()
-  if (!sectionSlug) {
-    return []
+  if (path[0] === 'member' && path.length > 1) {
+    path.shift()
+    const userIdName = path.shift()
+    if (!userIdName) return res
+
+    const [id, name] = userIdName?.split('-')
+    res.push({
+      text: name ?? userIdName,
+      to: { name: 'user', params: { userId: id, userName: name } },
+      key: `home/member/${userIdName}`,
+    })
+    return res
   }
 
-  const section = forumForums.value?.find((section) => section.slug === sectionSlug)
-  res.push({
-    text: section?.title ?? sectionSlug,
-    to: { name: 'section', params: { sectionSlug } },
-    key: `home/${sectionSlug}`,
-  })
-
   const forumPath = []
-  let forums = section?.subForums
+  let forums = rootForums.value
   let forumSlug: string | undefined
   while ((forumSlug = path.shift())) {
     if (/^\d+/gm.test(forumSlug)) {
@@ -92,9 +95,13 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
         text: topicStore.currentTopic?.title ?? forumSlug,
         to: {
           name: 'posts',
-          params: { sectionSlug, forumPath: [...forumPath], topic: topicStore.currentTopic?.slug, topicId: topicStore.currentTopic?.id },
+          params: {
+            forumPath: [...forumPath],
+            topic: topicStore.currentTopic?.slug,
+            topicId: topicStore.currentTopic?.id,
+          },
         },
-        key: `home/${sectionSlug}/${forumPath.join('/')}/${forumSlug}`,
+        key: `home/${forumPath.join('/')}/${forumSlug}`,
       })
       break
     }
@@ -106,8 +113,8 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
 
     res.push({
       text: forum?.title ?? forumSlug,
-      to: { name: 'forum', params: { sectionSlug, forumPath: [...forumPath] } },
-      key: `home/${sectionSlug}/${forumPath.join('/')}`,
+      to: { name: 'forum', params: { forumPath: [...forumPath] } },
+      key: `home/${forumPath.join('/')}`,
     })
   }
 

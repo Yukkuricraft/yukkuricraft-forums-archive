@@ -45,11 +45,12 @@ export function useTopic(topicId: Ref<number | string>, existingData?: Ref<Topic
   })
 }
 
-export function useTopics(forumId: Ref<number | string>, params: Ref<TopicsRequestParams>) {
+export function useTopics(forumId: Ref<number | string | undefined>, params: Ref<TopicsRequestParams>) {
   const api = useApi()
   return useQuery({
     queryKey: ['api', 'forums', forumId, 'topics', params],
     queryFn: ({ signal }) => api.get<Topic[]>(`/api/forums/${forumId.value}/topics`, { ...params.value }, signal),
+    enabled: () => Boolean(forumId.value),
   })
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+  <nav class="pagination is-centered" role="navigation" aria-label="pagination" v-if="pageCount > 1">
     <ul class="pagination-list">
       <template v-if="!shownMiddlePages.includes(1)">
         <li>

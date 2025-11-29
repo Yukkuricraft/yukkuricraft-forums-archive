@@ -27,19 +27,17 @@
 <script setup lang="ts">
 import { computed, onServerPrefetch, ref, watch, watchEffect } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
-import { pageCount, pageFromPath } from '../util/pathUtils.ts'
+import { pageFromPath } from '../util/pathUtils.ts'
 import ForumPost from '@/components/ForumPost.vue'
 import { useTopicsStore } from '@/stores/topics.ts'
 import { useRouter, type RouteLocationRaw } from 'vue-router'
-import { NotFoundError, useApi } from '@/util/Api.ts'
+import { NotFoundError } from '@/util/Api.ts'
 import useUnknownObject, { usePosts, usePostsCount, useTopic } from '@/composables/apiComposables.ts'
-import { useQuery } from '@tanstack/vue-query'
 import { refDebounced } from '@vueuse/core'
+import type { TopicRoute } from '@/util/RouteTypes.ts'
 
 const props = defineProps<{
-  sectionSlug: string
-  forumPath: string[]
-  topic: string
+  routeParams: TopicRoute
   topicId: string
   pageStr?: string
 }>()
@@ -54,10 +52,8 @@ const pageLinkGen = computed(
       return {
         name: 'posts',
         params: {
-          sectionSlug: props.sectionSlug,
-          forumPath: props.forumPath,
+          ...props.routeParams,
           topicId: props.topicId,
-          topic: props.topic,
           pageStr: newPage === 1 ? undefined : `page${newPage}`,
         },
       }
@@ -98,12 +94,11 @@ watch(
 )
 
 const actualTopicRoute = computed<RouteLocationRaw | null>(() => {
-  if (currentTopic.value && currentTopic.value.slug !== props.sectionSlug) {
+  if (currentTopic.value && currentTopic.value.slug !== props.routeParams.topic) {
     return {
       name: 'posts',
       params: {
-        sectionSlug: props.sectionSlug,
-        forumPath: props.forumPath,
+        ...props.routeParams,
         topicId: currentTopic.value.id,
         topic: currentTopic.value.slug,
         pageStr: page.value === 1 ? undefined : `page${page.value}`,
