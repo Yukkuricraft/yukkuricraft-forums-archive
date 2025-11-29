@@ -195,12 +195,13 @@ CREATE TABLE topic
     sticky     BOOLEAN     NOT NULL,
     deleted_at TIMESTAMPTZ,
     hidden     BOOLEAN     NOT NULL,
-    post_count INT         NOT NULL
+    post_count INT         NOT NULL,
+    ts_vector  TSVECTOR    NOT NULL
 );
 
 CREATE INDEX topics_forum_id_slug_idx ON topic (forum_id, slug);
 
-INSERT INTO topic (id, forum_id, creator_id, created_at, slug, title, sticky, deleted_at, hidden, post_count)
+INSERT INTO topic (id, forum_id, creator_id, created_at, slug, title, sticky, deleted_at, hidden, post_count, ts_vector)
 SELECT n.nodeid,
        n.parentid,
        u.userid,
@@ -210,7 +211,8 @@ SELECT n.nodeid,
        n.sticky,
        TO_TIMESTAMP(NULLIF(n.unpublishdate, 0)),
        n.approved = FALSE OR n.showapproved = FALSE,
-       0
+       0,
+       TO_TSVECTOR('english', n.title)
 FROM yc_forum_archive.node n
          LEFT JOIN yc_forum_archive.user u ON n.userid = u.userid
 WHERE n.parentid IN (SELECT id FROM forum)

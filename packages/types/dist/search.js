@@ -135,9 +135,7 @@ export function topicQuery(kysely, params) {
         .leftJoin('post as p', 'lpt.postId', 'p.id');
     if (keywords || q) {
         // Technically vBulletin searches all posts in a topic here I think, but that's a bit much
-        query = query.where((eb) => eb(
-        //sql.ref('t.ts_vector'), //TODO
-        eb.fn('TO_TSVECTOR', [sql.lit('english'), 't.title']), '@@', eb.fn('websearch_to_tsquery', [sql.lit('english'), eb.val(keywords ?? q ?? '')])));
+        query = query.where((eb) => eb(sql.ref('t.ts_vector'), '@@', eb.fn('websearch_to_tsquery', [sql.lit('english'), eb.val(keywords ?? q ?? '')])));
     }
     query = query.where('t.deletedAt', 'is', null).where('t.hidden', '=', false);
     if (date?.to) {

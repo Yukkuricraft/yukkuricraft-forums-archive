@@ -176,8 +176,7 @@ export function topicQuery(kysely: Kysely<DB>, params: QueryParams) {
     // Technically vBulletin searches all posts in a topic here I think, but that's a bit much
     query = query.where((eb) =>
       eb(
-        //sql.ref('t.ts_vector'), //TODO
-        eb.fn('TO_TSVECTOR', [sql.lit('english'), 't.title']),
+        sql.ref('t.ts_vector'),
         '@@',
         eb.fn('websearch_to_tsquery', [sql.lit('english'), eb.val(keywords ?? q ?? '')]),
       ),

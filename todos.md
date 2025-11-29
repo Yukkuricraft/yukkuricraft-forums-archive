@@ -4,8 +4,8 @@
 2. Fix suspense and related while loading, spinners potentially?
 3. Non-forum forums and topics
 4. Test dockerization
-5. ts_vector for topic
-6. Generate proper links in BbcodeQuote
+5. Generate proper links in BbcodeQuote
+6. User page
 7. Search for TODO and fix (Only if it's bad)
 
 # BBCode hell
