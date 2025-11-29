@@ -23,6 +23,7 @@
 
       <div class="navbar-menu" :class="{ 'is-active': navbarExpanded }">
         <div class="navbar-end">
+          <router-link class="navbar-item has-text-white" :to="{ name: 'about' }">About</router-link>
           <div class="navbar-item">
             <label id="navbarSearch" class="sr-only"></label>
             <div class="field has-addons">

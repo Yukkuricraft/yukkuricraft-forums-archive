@@ -1,11 +1,12 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
-import HomePage from './pages/HomePage.vue'
-import SectionPage from './pages/SectionPage.vue'
-import ForumPage from './pages/ForumPage.vue'
-import TopicPage from './pages/TopicPage.vue'
+import HomePage from '@/pages/HomePage.vue'
+import SectionPage from '@/pages/SectionPage.vue'
+import ForumPage from '@/pages/ForumPage.vue'
+import TopicPage from '@/pages/TopicPage.vue'
 import UserPage from '@/pages/UserPage.vue'
 import SearchPage from '@/pages/SearchPage.vue'
+import AboutPage from '@/pages/AboutPage.vue'
 
 export function createYcForumsRouter() {
   return createRouter({
@@ -15,6 +16,11 @@ export function createYcForumsRouter() {
         path: '/',
         name: 'home',
         component: HomePage,
+      },
+      {
+        path: '/about',
+        name: 'about',
+        component: AboutPage,
       },
       {
         path: '/forum/:sectionSlug?',
