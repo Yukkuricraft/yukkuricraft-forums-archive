@@ -4,7 +4,7 @@
       <h1 class="title">User Profile</h1>
     </div>
     <div style="grid-area: main" class="box">
-      <p>{{ user.biography }}</p>
+      <MarkdownLazy class="content" v-if="user.biography" :content="user.biography.replaceAll('\r\n', '\n')" />
     </div>
     <div style="grid-area: visitor-messages"></div>
     <div style="grid-area: sidebar">
@@ -42,6 +42,7 @@ import { useUser } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
+import MarkdownLazy from '@/components/MarkdownLazy.vue'
 
 const props = defineProps<{
   userId: string
@@ -59,7 +60,7 @@ const localeStore = useLocaleStore()
 .user-page-grid {
   display: grid;
   grid-template-columns: 4fr 8fr;
-  grid-template-rows: auto 1fr 1fr;
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     'header header'
     'sidebar main'
