@@ -22,6 +22,7 @@ app
     const state = generateState()
     const scopes = ['identify', 'email']
     const url = discord.createAuthorizationURL(state, null, scopes)
+    url.searchParams.append('prompt', 'none')
     return c.redirect(url)
   })
   .get(
@@ -63,6 +64,7 @@ app
         global_name?: string
         username: string
       }
+      const mapping = discordIdMappings[discordUser.id]
       const user = await prisma.user.findFirst({
         select: {
           id: true,
@@ -70,9 +72,12 @@ app
           isStaff: true,
           isAdmin: true,
         },
-        where: {
-          OR: [{ email: discordUser.email }, { id: discordIdMappings[discordUser.id] }],
-        },
+        where:
+          mapping && !isNaN(mapping)
+            ? {
+                OR: [{ email: discordUser.email }, { id: mapping }],
+              }
+            : { email: discordUser.email },
       })
 
       await setSignedCookie(

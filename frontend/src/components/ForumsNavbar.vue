@@ -48,19 +48,23 @@
             </div>
           </div>
           <a v-if="!activeUser && !activeUserLoading" class="navbar-item" href="/oauth/discord">Log in</a>
-          <div v-else-if="activeUser" class="navbar-item has-dropdown">
-            <a class="navbar-link">
+          <div v-else-if="activeUser" class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link has-text-white">
               <UserAvatar
                 :width="32"
-                :user-id="activeUser.id"
-                :user-name="activeUser.name"
-                :has-avatar="Boolean(activeUser.avatarId)"
+                :user-id="activeUser.user?.id"
+                :user-name="activeUser.user?.name"
+                :has-avatar="Boolean(activeUser.user?.avatarId)"
                 :thumbnail="true"
               />
             </a>
 
             <div class="navbar-dropdown">
-              <router-link :to="{ name: 'user', params: { userId: activeUser.id, userName: activeUser.name } }">
+              <router-link
+                class="navbar-item"
+                v-if="activeUser.user"
+                :to="{ name: 'user', params: { userId: activeUser.user.id, userName: activeUser.user.name } }"
+              >
                 Me
               </router-link>
               <a class="navbar-item" href="/signout">Sign out</a>
@@ -73,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { onServerPrefetch, ref } from 'vue'
+import { onMounted, onServerPrefetch, ref } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useQuery } from '@tanstack/vue-query'
 import { NotFoundError, useApi } from '@/util/Api.ts'
@@ -83,11 +87,20 @@ const navbarExpanded = ref(false)
 const searchInput = ref('')
 
 const api = useApi()
-const { data: activeUser, isLoading: activeUserLoading, suspense: activeUserSuspense } = useQuery({
+const {
+  data: activeUser,
+  isLoading: activeUserLoading,
+  suspense: activeUserSuspense,
+  refetch: refetchActiveUser,
+} = useQuery({
   queryKey: ['api', '@me'],
   queryFn: async ({ signal }) => {
     try {
-      return await api.get<User>('/api/@me', undefined, signal)
+      return await api.get<{ discordName: string; user: User | undefined; isAdmin: boolean; isStaff: boolean }>(
+        '/api/@me',
+        undefined,
+        signal,
+      )
     } catch (e) {
       if (e instanceof NotFoundError) {
         return null
@@ -96,6 +109,10 @@ const { data: activeUser, isLoading: activeUserLoading, suspense: activeUserSusp
       }
     }
   },
+})
+
+onMounted(() => {
+  refetchActiveUser()
 })
 
 onServerPrefetch(activeUserSuspense)

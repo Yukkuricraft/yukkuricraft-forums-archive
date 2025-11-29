@@ -24,7 +24,15 @@
               <h2 class="h4">{{ decodeHtmlEntities(topic.title) }}</h2>
             </router-link>
             <div class="byline">
-              <p>Created: {{ localeStore.formatDate(topic.createdAt) }} by {{ creator?.name }}</p>
+              <p>
+                Started by
+                <router-link
+                  v-if="creator"
+                  :to="{ name: 'user', params: { userId: creator.id, userName: creator.name } }"
+                >
+                  {{ creator.name }} </router-link
+                ><span v-else>Unknown</span>, {{ localeStore.formatDate(topic.createdAt) }}
+              </p>
             </div>
           </div>
 
@@ -48,7 +56,16 @@
               <div>
                 <div class="byline">
                   <p>Posted: {{ localeStore.formatDate(topic.lastPostSummary.at) }}</p>
-                  <p>By: {{ lastPostUser?.name }}</p>
+                  <p>
+                    By:
+                    <router-link
+                      v-if="lastPostUser"
+                      :to="{ name: 'user', params: { userId: lastPostUser.id, userName: lastPostUser.name } }"
+                    >
+                      {{ lastPostUser.name }}
+                    </router-link>
+                    <span v-else>Unknown</span>
+                  </p>
                 </div>
               </div>
             </div>
