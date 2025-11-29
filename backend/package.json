@@ -2,7 +2,7 @@
   "name": "@yukkuricraft-forums-archive/backend",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts ",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check-types": "tsc --noEmit",

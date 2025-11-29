@@ -2,9 +2,11 @@
   "name": "@yukkuricraft-forums-archive/database",
   "type": "module",
   "scripts": {
+    "dev": "run-p dev:compile dev:prisma",
+    "dev:compile": "tsc --watch",
+    "dev:prisma": "yarn db:generate --watch",
     "db:generate": "prisma generate",
-    "build": "tsc && yarn copy-prisma",
-    "copy-prisma": "copyfiles ./generated/prisma/** ./dist",
+    "build": "tsc",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
     "fixlint": "eslint --fix"
@@ -36,12 +38,11 @@
   },
   "devDependencies": {
     "@prisma/client": "^7.0.0",
-    "@types/copyfiles": "^2.4.4",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
     "@yukkuricraft-forums-archive/eslint-config": "workspace:*",
     "@yukkuricraft-forums-archive/ts-config": "workspace:*",
-    "copyfiles": "^2.4.1",
+    "npm-run-all": "^4.1.5",
     "prisma-kysely": "^2.2.1",
     "typescript": "^5.9.3"
   }

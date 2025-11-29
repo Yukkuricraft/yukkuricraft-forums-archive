@@ -1,39 +1,59 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-import { getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
+import { getPostsCountQuery, getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
 import { ensureCanAccessTopic } from './auth.js'
 
-const app = new Hono().get(
-  'topics/:topicId/posts',
-  zValidator(
-    'query',
-    z.object({
-      q: z.string().optional(),
-      page: z.string().pipe(z.coerce.number()).pipe(z.int().positive().min(1)).default(1),
-      pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30)).default(10),
-    }),
-  ),
-  zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
-  async (c) => {
-    const { page, q, pageSize } = c.req.valid('query')
-    const { topicId } = c.req.valid('param')
-    const prisma = c.get('prismaKysely')
-    await ensureCanAccessTopic(c, topicId)
+const app = new Hono()
+  .get(
+    'topics/:topicId/posts',
+    zValidator(
+      'query',
+      z.object({
+        q: z.string().optional(),
+        page: z.string().pipe(z.coerce.number()).pipe(z.int().positive().min(1)).default(1),
+        pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30)).default(10),
+      }),
+    ),
+    zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
+    async (c) => {
+      const { page, q, pageSize } = c.req.valid('query')
+      const { topicId } = c.req.valid('param')
+      const prisma = c.get('prismaKysely')
+      await ensureCanAccessTopic(c, topicId)
 
-    const res = await getPostsQuery(prisma.$kysely, topicId, q ?? '', pageSize, pageSize * (page - 1)).execute()
+      const res = await getPostsQuery(prisma.$kysely, topicId, q ?? '', pageSize, pageSize * (page - 1)).execute()
 
-    if (res.length === 0) {
-      const topicExists = await prisma.topic.count({ where: { id: topicId } })
-      if (topicExists) {
-        return c.json([])
+      if (res.length === 0) {
+        const topicExists = await prisma.topic.count({ where: { id: topicId } })
+        if (topicExists) {
+          return c.json([])
+        }
+
+        return c.json({ error: 'not found' }, 404)
       }
 
-      return c.json({ error: 'not found' }, 404)
-    }
+      return c.json(res)
+    },
+  )
+  .get(
+    'topics/:topicId/posts/count',
+    zValidator(
+      'query',
+      z.object({
+        q: z.string().optional(),
+      }),
+    ),
+    zValidator('param', z.object({ topicId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
+    async (c) => {
+      const { q } = c.req.valid('query')
+      const { topicId } = c.req.valid('param')
+      const prisma = c.get('prismaKysely')
+      await ensureCanAccessTopic(c, topicId)
 
-    return c.json(res)
-  },
-)
+      const res = await getPostsCountQuery(prisma.$kysely, topicId, q ?? '').execute()
+      return c.json({ posts: Number(res[0].count) })
+    },
+  )
 
 export default app

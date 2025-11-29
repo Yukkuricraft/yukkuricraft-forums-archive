@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "run-p dev:client dev:server",
+    "dev:client": "yarn build-only:client --watch",
+    "dev:server": "yarn build-only:server --watch",
     "build": "run-p check-types build-only:client build-only:server",
     "build:client": "run-p check-types build-only:client",
     "build:server": "run-p check-types build-only:server",

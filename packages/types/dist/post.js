@@ -1,12 +1,21 @@
 import { sql } from 'kysely';
-export function getPostsQuery(kysely, topicId, q, limit, offset) {
+function getPostsBaseQuery(kysely, topicId, q) {
     let query = kysely
         .selectFrom('post as p')
         .innerJoin('postIdx as i', 'p.id', 'i.id')
         .leftJoin('lastEditForPost as lefp', 'p.id', 'lefp.postId')
         .leftJoin('postEditHistory as peh', 'lefp.postEditId', 'peh.id')
-        .where('p.topicId', '=', topicId)
-        .select((eb) => [
+        .where('p.topicId', '=', topicId);
+    if (q) {
+        query = query.where((eb) => sql `POSITION(${q} in ${eb.ref('p.content')}) > 0`);
+    }
+    return query;
+}
+export function getPostsCountQuery(kysely, topicId, q) {
+    return getPostsBaseQuery(kysely, topicId, q).select(kysely.fn.countAll().as('count'));
+}
+export function getPostsQuery(kysely, topicId, q, limit, offset) {
+    let query = getPostsBaseQuery(kysely, topicId, q).select((eb) => [
         'p.id',
         'p.topicId',
         'p.creatorId',
@@ -21,7 +30,7 @@ export function getPostsQuery(kysely, topicId, q, limit, offset) {
         'peh.reason as postEditReason',
     ]);
     if (q) {
-        query = query.where((eb) => sql `POSITION(${q} in ${eb.ref('p.content')}) > 0)`);
+        query = query.where((eb) => sql `POSITION(${q} in ${eb.ref('p.content')}) > 0`);
     }
     query = query.orderBy('p.id').limit(limit).offset(offset);
     return query;

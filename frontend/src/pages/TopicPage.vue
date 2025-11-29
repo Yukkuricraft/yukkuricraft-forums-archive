@@ -1,13 +1,23 @@
 <template>
   <div>
-    <h1 v-if="currentTopic" class="title is-2">{{ currentTopic.title }}</h1>
+    <div class="is-flex is-justify-content-space-between is-align-items-start">
+      <h1 v-if="currentTopic" class="title is-2">{{ currentTopic.title }}</h1>
+      <div>
+        <div class="field">
+          <label class="label is-sr-only">Search</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="Search..." v-model="search" />
+          </div>
+        </div>
+      </div>
+    </div>
 
     <ForumPost v-for="post in posts" :key="'post-' + post.id" :post="post" :page-props="props" />
 
     <Pagination
-      v-if="currentTopic"
+      v-if="postsCount"
       :current-page="page"
-      :page-count="Math.ceil(currentTopic.postCount / 10)"
+      :page-count="Math.ceil(postsCount.posts / 10)"
       :link-gen="pageLinkGen"
       :shown-pages="9"
     />
@@ -15,15 +25,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onServerPrefetch, watch, watchEffect } from 'vue'
+import { computed, onServerPrefetch, ref, watch, watchEffect } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
 import { pageCount, pageFromPath } from '../util/pathUtils.ts'
 import ForumPost from '@/components/ForumPost.vue'
 import { useTopicsStore } from '@/stores/topics.ts'
 import { useRouter, type RouteLocationRaw } from 'vue-router'
 import { NotFoundError, useApi } from '@/util/Api.ts'
-import { usePosts, useTopic } from '@/composables/apiComposables.ts'
+import { usePosts, usePostsCount, useTopic } from '@/composables/apiComposables.ts'
 import { useQuery } from '@tanstack/vue-query'
+import { refDebounced } from '@vueuse/core'
 
 const props = defineProps<{
   sectionSlug: string
@@ -32,7 +43,11 @@ const props = defineProps<{
   topicId: string
   pageStr?: string
 }>()
+const search = ref('')
 const page = computed(() => pageFromPath(props.pageStr))
+
+const debouncedSearch = refDebounced(search, 500)
+
 const pageLinkGen = computed(
   () =>
     function (newPage: number) {
@@ -53,7 +68,11 @@ const topicStore = useTopicsStore()
 
 const { data: posts, suspense: suspensePosts } = usePosts(
   computed(() => props.topicId),
-  computed(() => ({ page: page.value, pageSize: 10 })),
+  computed(() => ({ page: page.value, pageSize: 10, q: debouncedSearch.value })),
+)
+const { data: postsCount, suspense: suspensePostsCount } = usePostsCount(
+  computed(() => props.topicId),
+  computed(() => ({ q: debouncedSearch.value })),
 )
 const {
   data: currentTopic,
@@ -66,7 +85,7 @@ const {
 
 const api = useApi()
 
-const { data: unknownObject, suspense: suspenseUnknownTopic } = useQuery({
+const { data: unknownObject } = useQuery({
   queryKey: ['api', 'unknownObject', computed(() => props.topicId), topicFailureReason],
   queryFn: ({ signal }) => {
     return api.get<
@@ -134,7 +153,7 @@ const actualRoute = computed<RouteLocationRaw | null>(() => {
 })
 
 onServerPrefetch(async () => {
-  await Promise.all([suspensePosts(), suspenseTopic()])
+  await Promise.all([suspensePosts(), suspenseTopic(), suspensePostsCount()])
 })
 
 watch(

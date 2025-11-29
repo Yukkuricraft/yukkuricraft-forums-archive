@@ -60,6 +60,15 @@ export function usePosts(topicId: Ref<number | string>, params: Ref<{ q?: string
   })
 }
 
+export function usePostsCount(topicId: Ref<number | string>, params: Ref<{ q?: string }>) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', 'topics', topicId, 'posts', 'count', params],
+    queryFn: ({ signal }) =>
+      api.get<{ posts: number }>(`/api/topics/${topicId.value}/posts/count`, { ...params.value }, signal),
+  })
+}
+
 export const userLoaderInjectKey = Symbol('userLoader') as InjectionKey<DataLoader<number, User>>
 export function useUsersLoader() {
   const loader = inject(userLoaderInjectKey)
