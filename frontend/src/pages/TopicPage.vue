@@ -74,6 +74,7 @@ const {
   data: currentTopic,
   suspense: suspenseTopic,
   failureReason: topicFailureReason,
+  isStale: topicIsStale,
 } = useTopic(
   computed(() => props.topicId),
   computed(() => topicStore.currentTopic),
@@ -94,7 +95,7 @@ watch(
 )
 
 const actualTopicRoute = computed<RouteLocationRaw | null>(() => {
-  if (currentTopic.value && currentTopic.value.slug !== props.routeParams.topic) {
+  if (!topicIsStale && currentTopic.value && currentTopic.value.slug !== props.routeParams.topic) {
     return {
       name: 'posts',
       params: {
@@ -127,9 +128,9 @@ watch(
   { immediate: true },
 )
 
-watchEffect(() => {
+watchEffect(async () => {
   if (actualRoute.value) {
-    router.replace(actualRoute.value)
+    await router.replace(actualRoute.value)
   }
 })
 </script>
