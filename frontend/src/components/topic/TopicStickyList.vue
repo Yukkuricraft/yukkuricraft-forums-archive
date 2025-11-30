@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import TopicSummary from '@/components/TopicSummary.vue'
+import TopicSummary from '@/components/topic/TopicSummary.vue'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { useStickyTopics } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'

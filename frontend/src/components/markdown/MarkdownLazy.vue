@@ -4,13 +4,13 @@
 
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
-import TextErrorComponent from '@/components/TextErrorComponent.vue'
-import TextLoadingComponent from '@/components/TextLoadingComponent.vue'
+import MarkdownErrorComponent from '@/components/markdown/MarkdownErrorComponent.vue'
+import MarkdownLoadingComponent from '@/components/markdown/MarkdownLoadingComponent.vue'
 
 const MarkdownNow = defineAsyncComponent({
   loader: () => import('./MarkdownNow.vue'),
-  loadingComponent: TextLoadingComponent,
-  errorComponent: TextErrorComponent,
+  loadingComponent: MarkdownLoadingComponent,
+  errorComponent: MarkdownErrorComponent,
   delay: 0,
 })
 

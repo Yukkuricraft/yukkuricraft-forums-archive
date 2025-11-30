@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
-import ForumListEntry from '@/components/ForumListEntry.vue'
+import ForumListEntry from '@/components/forum/ForumListEntry.vue'
 import type { ForumRoute } from '@/util/RouteTypes.ts'
 
 defineProps<{

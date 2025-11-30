@@ -32,7 +32,7 @@
         </strong>
         in {{ post.topic.forum.title }}
         <br />
-        <PostContent
+        <ForumPostContent
           :style="hideContent ? { overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '10rem' } : {}"
           :content="post.content"
         />
@@ -55,7 +55,7 @@ import type { SearchPost as SearchPostType } from '@yukkuricraft-forums-archive/
 import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, onServerPrefetch, ref } from 'vue'
 import UserLink from '@/components/UserLink.vue'
-import PostContent from '@/components/PostContent.vue'
+import ForumPostContent from '@/components/forum/ForumPostContent.vue'
 
 import { pageCount } from '@/util/pathUtils.ts'
 import { useLocaleStore } from '@/stores/localization.ts'

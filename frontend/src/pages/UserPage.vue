@@ -52,9 +52,9 @@ import { useUser, useVisitorMessages, useVisitorMessagesCount } from '@/composab
 import { computed, onServerPrefetch, ref } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
-import MarkdownLazy from '@/components/MarkdownLazy.vue'
+import MarkdownLazy from '@/components/markdown/MarkdownLazy.vue'
 import Pagination from '@/components/AutoPagination.vue'
-import ForumPost from '@/components/ForumPost.vue'
+import ForumPost from '@/components/forum/ForumPost.vue'
 import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 
 const props = defineProps<{

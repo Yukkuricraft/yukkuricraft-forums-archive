@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { computed, onErrorCaptured } from 'vue'
-import { BbcodeRenderer } from '@/components/BbcodeRenderer.tsx'
+import { BbcodeRenderer } from '@/components/bbcode/BbcodeRenderer.tsx'
 
 const props = defineProps<{
   content: string

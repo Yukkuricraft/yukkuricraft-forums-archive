@@ -44,7 +44,7 @@
             </router-link>
           </div>
 
-          <PostContent :content="post.content" />
+          <ForumPostContent :content="post.content" />
           <template v-if="post.postEditCreatedAt || post.postEditCreatorId || post.postEditReason">
             <i
               >Last edited by <UserLink :user="lastEditUser ?? null"></UserLink>;
@@ -54,7 +54,7 @@
           </template>
           <hr />
           <div>
-            <PostContent :content="creator?.signature ?? ''"></PostContent>
+            <ForumPostContent :content="creator?.signature ?? ''"></ForumPostContent>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import type { Post } from '@yukkuricraft-forums-archive/types/post'
-import PostContent from '@/components/PostContent.vue'
+import ForumPostContent from '@/components/forum/ForumPostContent.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'

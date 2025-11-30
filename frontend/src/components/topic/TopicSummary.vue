@@ -26,12 +26,7 @@
             <div class="byline">
               <p>
                 Started by
-                <router-link
-                  v-if="creator"
-                  :to="{ name: 'user', params: { userId: creator.id, userName: creator.name } }"
-                >
-                  {{ creator.name }} </router-link
-                ><span v-else>Unknown</span>, {{ localeStore.formatDate(topic.createdAt) }}
+                <UserLink :user="creator ?? null" />, {{ localeStore.formatDate(topic.createdAt) }}
               </p>
             </div>
           </div>
@@ -56,16 +51,7 @@
               <div>
                 <div class="byline">
                   <p>Posted: {{ localeStore.formatDate(topic.lastPostSummary.at) }}</p>
-                  <p>
-                    By:
-                    <router-link
-                      v-if="lastPostUser"
-                      :to="{ name: 'user', params: { userId: lastPostUser.id, userName: lastPostUser.name } }"
-                    >
-                      {{ lastPostUser.name }}
-                    </router-link>
-                    <span v-else>Unknown</span>
-                  </p>
+                  <p>By: <UserLink :user="lastPostUser ?? null" /></p>
                 </div>
               </div>
             </div>
@@ -85,6 +71,7 @@ import { useTopicsStore } from '@/stores/topics.ts'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { useUser } from '@/composables/apiComposables.ts'
 import type { ForumRoute } from '@/util/RouteTypes.ts'
+import UserLink from '@/components/UserLink.vue'
 
 const topicStore = useTopicsStore()
 const localeStore = useLocaleStore()

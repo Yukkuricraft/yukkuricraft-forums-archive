@@ -8,10 +8,10 @@ import type { ForumRoute } from '@/util/RouteTypes.ts'
 import { useRootForums, useTopics } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'
 import { pageFromPath } from '@/util/pathUtils.ts'
-import ForumPage from '@/pages/ForumPage.vue'
+import ForumPage from '@/components/forum/ForumPage.vue'
 import { useHead } from '@unhead/vue'
 import { makeMeta } from '@/util/pageHelpers.ts'
-import ForumSection from '@/components/ForumSection.vue'
+import ForumSection from '@/components/forum/ForumSection.vue'
 
 const props = defineProps<{ routeParams: ForumRoute; pageStr?: string }>()
 const page = computed(() => pageFromPath(props.pageStr))

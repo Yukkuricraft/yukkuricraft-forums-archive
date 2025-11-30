@@ -20,7 +20,7 @@ import { useQuery } from '@tanstack/vue-query'
 import type { User } from '@yukkuricraft-forums-archive/types/user'
 import { useRouter } from 'vue-router'
 import Pagination from '@/components/AutoPagination.vue'
-import TopicSummary from '@/components/TopicSummary.vue'
+import TopicSummary from '@/components/topic/TopicSummary.vue'
 import { usePrivateMessages, usePrivateMessagesCount } from '@/composables/apiComposables.ts'
 import type { TopicsOrderingRequestParams } from '@/stores/topics.ts'
 

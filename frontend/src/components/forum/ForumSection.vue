@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
-import ConfigurableHeading from './ConfigurableHeading.vue'
+import ConfigurableHeading from '../ConfigurableHeading.vue'
 import ForumList from './ForumList.vue'
 import { computed } from 'vue'
 import type { ForumRoute } from '@/util/RouteTypes.ts'

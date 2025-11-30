@@ -14,7 +14,7 @@
 import { useHead } from '@unhead/vue'
 
 import { makeMeta } from '../util/pageHelpers.ts'
-import ForumSection from '../components/ForumSection.vue'
+import ForumSection from '../components/forum/ForumSection.vue'
 import { onServerPrefetch } from 'vue'
 import { useForumForums } from '@/composables/apiComposables.ts'
 

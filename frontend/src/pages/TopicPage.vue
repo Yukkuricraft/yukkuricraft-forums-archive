@@ -28,7 +28,7 @@
 import { computed, onServerPrefetch, ref, watch, watchEffect } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
 import { pageFromPath } from '../util/pathUtils.ts'
-import ForumPost from '@/components/ForumPost.vue'
+import ForumPost from '@/components/forum/ForumPost.vue'
 import { useTopicsStore } from '@/stores/topics.ts'
 import { useRouter, type RouteLocationRaw } from 'vue-router'
 import { NotFoundError } from '@/util/Api.ts'
