@@ -6,7 +6,7 @@ import z from 'zod'
 import { topicIncludeRequest, makeOutTopic } from '@yukkuricraft-forums-archive/types/topic'
 import { ensureCanAccessForum, ensureCanAccessTopic } from './auth.js'
 
-function topicOrder(
+export function topicOrder(
   sortBy: 'dateLastUpdate' | 'dateStartedPost' | 'replies' | 'title' | 'members',
   order: 'asc' | 'desc',
 ) {

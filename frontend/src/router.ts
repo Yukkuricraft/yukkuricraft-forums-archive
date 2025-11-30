@@ -7,6 +7,9 @@ import SearchPage from '@/pages/SearchPage.vue'
 import AboutPage from '@/pages/AboutPage.vue'
 import type { ForumRoute, TopicRoute } from '@/util/RouteTypes.ts'
 import ForumOrSectionPage from '@/pages/ForumOrSectionPage.vue'
+import { Api, NotFoundError, useApi } from '@/util/Api.ts'
+import type { User } from '@yukkuricraft-forums-archive/types/user'
+import PrivateMessagesPage from '@/pages/PrivateMessagesPage.vue'
 
 function first(str: string | string[]): string {
   return Array.isArray(str) ? str[0] : str
@@ -16,7 +19,7 @@ function arr(str: string | string[]): string[] {
   return Array.isArray(str) ? str : [str]
 }
 
-export function createYcForumsRouter() {
+export function createYcForumsRouter(api: Api) {
   return createRouter({
     history: import.meta.env.SSR ? createMemoryHistory('/') : createWebHistory('/'),
     routes: [
@@ -40,6 +43,12 @@ export function createYcForumsRouter() {
         path: '/member/:userId-:userName',
         name: 'user',
         component: UserPage,
+        props: true,
+      },
+      {
+        path: '/@me/private-messages/:pageStr(page\\d+)?',
+        name: 'private-messages',
+        component: PrivateMessagesPage,
         props: true,
       },
       {

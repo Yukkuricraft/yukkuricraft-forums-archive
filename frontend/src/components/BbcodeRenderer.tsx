@@ -377,6 +377,11 @@ export const customPreset = vuePreset.extend((defTags) => ({
     },
     tag: 'div',
   }),
+  s: (node) => ({
+    ...node,
+    attrs: {},
+    tag: 'strike',
+  })
 }))
 
 function unparseTree(tree: TagNodeObject): string {
@@ -516,6 +521,7 @@ const plugins = [
     'table',
     'tbody',
     'code',
+    'strike',
   ]),
   lineBreakPlugin(),
   mergeStringsPlugin(),

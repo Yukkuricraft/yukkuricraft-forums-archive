@@ -72,6 +72,41 @@ export function usePostsCount(topicId: Ref<number | string>, params: Ref<{ q?: s
   })
 }
 
+export function useVisitorMessages(userId: Ref<number | string>, params: Ref<{ pageSize: number; page: number }>) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', 'user', userId, 'visitorMessages', params],
+    queryFn: ({ signal }) => api.get<Post[]>(`/api/user/${userId.value}/visitorMessages`, { ...params.value }, signal),
+    placeholderData: keepPreviousData, //TODO: Only for current user
+  })
+}
+
+export function useVisitorMessagesCount(userId: Ref<number | string>) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', 'user', userId, 'visitorMessages', 'count'],
+    queryFn: ({ signal }) => api.get<{ posts: number }>(`/api/user/${userId.value}/visitorMessages/count`, {}, signal),
+  })
+}
+
+export function usePrivateMessages(params: Ref<TopicsRequestParams>) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', '@me', 'privateMessages', params],
+    queryFn: ({ signal }) => api.get<Topic[]>(`/api/@me/privateMessages`, { ...params.value }, signal),
+  })
+}
+
+export function usePrivateMessagesCount() {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', '@me', 'privateMessages', 'count'],
+    queryFn: async ({ signal }) => {
+      return await api.get<{ count: number }>(`/api/@me/privateMessages/count`, undefined, signal)
+    },
+  })
+}
+
 export const userLoaderInjectKey = Symbol('userLoader') as InjectionKey<DataLoader<number, User>>
 export function useUsersLoader() {
   const loader = inject(userLoaderInjectKey)

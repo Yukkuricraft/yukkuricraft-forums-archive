@@ -13,6 +13,7 @@ export async function render(
   manifest: { [k: string]: string[] },
   requestsBase: string,
   locales: string | string[] | undefined,
+  cookieHeader: string | null,
 ): Promise<{
   html: string
   preloadLinks: string
@@ -20,10 +21,10 @@ export async function render(
   piniaState: string
   queryClientState: string
 }> {
-  const { app, router, pinia, queryClient } = createYcForumsApp()
+  const api = new Api(requestsBase, cookieHeader ? { cookie: cookieHeader } : undefined)
+  const { app, router, pinia, queryClient } = createYcForumsApp(api)
   const head = createHead()
   app.use(head)
-  const api = new Api(requestsBase)
   app.provide(apiKey, api)
   app.provide(userLoaderInjectKey, makeUsersLoader(api))
 

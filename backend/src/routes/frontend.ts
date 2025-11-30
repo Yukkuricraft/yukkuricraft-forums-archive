@@ -21,7 +21,8 @@ type Render = (
   url: string,
   manifest: { [k: string]: string[] },
   requestsBase: string,
-  locales?: string | string[] | undefined,
+  locales: string | string[] | undefined,
+  cookieHeader: string | null
 ) => Promise<{ html: string; preloadLinks: string; head: Unhead<any>; piniaState: string; queryClientState: string }>
 
 function fileCwd() {
@@ -52,10 +53,10 @@ const [template, render, fixStacktrace] = await (async () => {
 
     return [
       () => Promise.resolve(template),
-      async (url: string, port: number, locales: string | string[] | undefined) =>
+      async (url: string, port: number, locales: string | string[] | undefined, cookieHeader: string | null) =>
         // TODO: Set https here conditionally
         // TODO: Set base here conditionally
-        await render(url, manifest.default, `http://localhost:${port}/`, locales),
+        await render(url, manifest.default, `http://localhost:${port}/`, locales, cookieHeader),
       undefined,
     ] as const
   } else {
@@ -99,8 +100,8 @@ const [template, render, fixStacktrace] = await (async () => {
 
     return [
       async (url: string) => await vite.transformIndexHtml(url, template),
-      async (url: string, port: number, locales: string | string[] | undefined) =>
-        await render(url, {}, `http://localhost:${port}/`, locales),
+      async (url: string, port: number, locales: string | string[] | undefined, cookieHeader: string | null) =>
+        await render(url, {}, `http://localhost:${port}/`, locales, cookieHeader),
       (e: any) => vite.ssrFixStacktrace(e),
     ] as const
   }
@@ -108,6 +109,7 @@ const [template, render, fixStacktrace] = await (async () => {
 
 async function handle(c: Context) {
   const port = c.get('addressInfo').port
+  const cookieHeader = c.req.raw.headers.get('Cookie')
   if (!port) {
     throw new AppError('Not port defined', false)
   }
@@ -115,7 +117,7 @@ async function handle(c: Context) {
   try {
     console.log('Rendering: ' + c.req.path)
 
-    const rendered = await render(c.req.path, port, c.get('language'))
+    const rendered = await render(c.req.path, port, c.get('language'), cookieHeader)
     const baseTemplate = await template(c.req.path)
 
     const stateScript = `<script id="pinia-state">

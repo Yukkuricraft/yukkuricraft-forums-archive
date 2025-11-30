@@ -6,6 +6,7 @@ import contentDisposition from 'content-disposition'
 import * as mime from 'mime-types'
 import AppError from '../AppError.js'
 import { userInclude } from '@yukkuricraft-forums-archive/types/user'
+import { getUserVisitorMessagesCountQuery, getUserVisitorMessagesQuery } from '@yukkuricraft-forums-archive/types/post'
 
 const app = new Hono()
   .get('dumpAllAvatars', async (c) => {
@@ -164,6 +165,45 @@ const app = new Hono()
         'content-type': mime.contentType(user.Avatar.filename) || 'application/octet-stream',
         'content-disposition': contentDisposition(user.Avatar.filename, { type: 'inline' }),
       })
+    },
+  )
+  .get(
+    'user/:userId/visitorMessages',
+    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
+    zValidator(
+      'query',
+      z.object({
+        page: z.string().pipe(z.coerce.number()).pipe(z.int().positive().min(1)).default(1),
+        pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30)).default(10),
+      }),
+    ),
+    async (c) => {
+      const { userId } = c.req.valid('param')
+      const { page, pageSize } = c.req.valid('query')
+      const prisma = c.get('prismaKysely')
+      const res = await getUserVisitorMessagesQuery(prisma.$kysely, userId, pageSize, pageSize * (page - 1)).execute()
+
+      if (res.length === 0) {
+        const userExists = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } })
+        if (userExists) {
+          return c.json([])
+        }
+
+        return c.json({ error: 'not found' }, 404)
+      }
+
+      return c.json(res)
+    },
+  )
+  .get(
+    'user/:userId/visitorMessages/count',
+    zValidator('param', z.object({ userId: z.string().pipe(z.coerce.number()).pipe(z.int()) })),
+    async (c) => {
+      const { userId } = c.req.valid('param')
+      const prisma = c.get('prismaKysely')
+
+      const res = await getUserVisitorMessagesCountQuery(prisma.$kysely, userId).execute()
+      return c.json({ posts: Number(res[0].count) })
     },
   )
 

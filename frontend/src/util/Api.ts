@@ -24,10 +24,12 @@ export class NotFoundError extends ResponseCodeError {
 }
 
 export class Api {
-  base: string
+  readonly #base: string
+  readonly #headers?: Record<string, string>
 
-  constructor(base: string) {
-    this.base = base
+  constructor(base: string, headers?: Record<string, string>) {
+    this.#base = base
+    this.#headers = headers
   }
 
   async get<Type>(
@@ -41,12 +43,13 @@ export class Api {
     if (urlWithParams.startsWith('http')) {
       usedUrl = urlWithParams
     } else if (urlWithParams.startsWith('/')) {
-      usedUrl = this.base + urlWithParams.substring(1)
+      usedUrl = this.#base + urlWithParams.substring(1)
     } else {
-      usedUrl = this.base + urlWithParams
+      usedUrl = this.#base + urlWithParams
     }
 
     const res = await fetch(usedUrl, {
+      headers: this.#headers,
       signal,
     })
 

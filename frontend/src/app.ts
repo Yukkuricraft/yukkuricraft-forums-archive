@@ -7,10 +7,11 @@ import './scss/app.scss'
 import App from './App.vue'
 import { createYcForumsRouter } from './router'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+import type { Api } from '@/util/Api.ts'
 
-export function createYcForumsApp() {
+export function createYcForumsApp(api: Api) {
   const app = createSSRApp(App)
-  const router = createYcForumsRouter()
+  const router = createYcForumsRouter(api)
   const pinia = createPinia()
 
   app.component('FontAwesomeIcon', FontAwesomeIcon)

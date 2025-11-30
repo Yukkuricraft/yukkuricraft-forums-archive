@@ -360,6 +360,21 @@ INSERT INTO post_link (post_id, url, url_title)
 SELECT l.nodeid, l.url, l.url_title
 FROM yc_forum_archive.link l;
 
+CREATE TABLE post_visitor_message (
+    post_id INT PRIMARY KEY REFERENCES post,
+    for_user INT NOT NULL REFERENCES "user"
+);
+INSERT INTO post_visitor_message (post_id, for_user)
+SELECT n.nodeid, n.setfor FROM yc_forum_archive.node n WHERE n.setfor != 0;
+
+CREATE TABLE topic_private_message (
+    topic_id INT NOT NULL REFERENCES topic,
+    sent_to INT NOT NULL REFERENCES "user",
+    PRIMARY KEY (topic_id, sent_to)
+);
+INSERT INTO topic_private_message (topic_id, sent_to)
+SELECT DISTINCT s.nodeid, s.userid FROM yc_forum_archive.sentto s WHERE s.nodeid IN (SELECT id FROM topic);
+
 CREATE TABLE smilie
 (
     id    INT PRIMARY KEY,
@@ -372,7 +387,7 @@ SELECT s.smilieid, s.title, s.smilietext, s.smiliepath
 FROM yc_forum_archive.smilie s;
 
 UPDATE topic t
-SET post_count = (SELECT COUNT(*) FROM post p WHERE p.topic_id = t.id)
+SET post_count = (SELECT COUNT(*) FROM post p WHERE p.topic_id = t.id AND NOT p.hidden AND p.deleted_at IS NULL)
 WHERE TRUE;
 
 WITH RECURSIVE parents(id, parent_id) AS (SELECT f.id, f.parent_id
@@ -400,6 +415,7 @@ WHERE TRUE;
 CREATE VIEW last_post_in_topic AS
 SELECT p.topic_id, MAX(p.id) AS post_id
 FROM post p
+WHERE NOT p.hidden AND p.deleted_at IS NULL
 GROUP BY p.topic_id;
 -- SELECT p.topic_id, p.id AS post_id
 -- FROM post p

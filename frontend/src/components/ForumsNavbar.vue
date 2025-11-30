@@ -23,7 +23,7 @@
 
       <div class="navbar-menu" :class="{ 'is-active': navbarExpanded }">
         <div class="navbar-start">
-          <router-link class="navbar-item has-text-white" :to="{ name: 'forum', params: {forumPath: ['groups']} }">
+          <router-link class="navbar-item has-text-white" :to="{ name: 'forum', params: { forumPath: ['groups'] } }">
             Groups
           </router-link>
           <router-link class="navbar-item has-text-white" :to="{ name: 'about' }">About</router-link>
@@ -72,6 +72,7 @@
               >
                 Me
               </router-link>
+              <router-link class="navbar-item" v-if="activeUser.user" :to="{ name: 'private-messages' }">Private messages</router-link>
               <a class="navbar-item" href="/signout">Sign out</a>
             </div>
           </div>
@@ -82,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onServerPrefetch, ref } from 'vue'
+import { onServerPrefetch, ref } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useQuery } from '@tanstack/vue-query'
 import { NotFoundError, useApi } from '@/util/Api.ts'
@@ -96,7 +97,6 @@ const {
   data: activeUser,
   isLoading: activeUserLoading,
   suspense: activeUserSuspense,
-  refetch: refetchActiveUser,
 } = useQuery({
   queryKey: ['api', '@me'],
   queryFn: async ({ signal }) => {
@@ -114,10 +114,6 @@ const {
       }
     }
   },
-})
-
-onMounted(() => {
-  refetchActiveUser()
 })
 
 onServerPrefetch(activeUserSuspense)

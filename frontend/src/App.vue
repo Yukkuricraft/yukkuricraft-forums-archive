@@ -45,6 +45,7 @@ import { useTopicsStore } from '@/stores/topics.ts'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useRootForums } from '@/composables/apiComposables.ts'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 
 const { data: rootForums, suspense } = useRootForums()
 
@@ -78,8 +79,9 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     if (!userIdName) return res
 
     const [id, name] = userIdName?.split('-')
+
     res.push({
-      text: name ?? userIdName,
+      text: decodeURIComponent(name) ?? decodeURIComponent(userIdName),
       to: { name: 'user', params: { userId: id, userName: name } },
       key: `home/member/${userIdName}`,
     })

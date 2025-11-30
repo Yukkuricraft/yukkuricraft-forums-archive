@@ -21,28 +21,59 @@ export function getPostsCountQuery(kysely: Kysely<DB>, topicId: number, q: strin
 }
 
 export function getPostsQuery(kysely: Kysely<DB>, topicId: number, q: string, limit: number, offset: number) {
-  let query = getPostsBaseQuery(kysely, topicId, q).select((eb) => [
-    'p.id',
-    'p.topicId',
-    'p.creatorId',
-    'p.createdAt',
-    'p.updatedAt',
-    'p.content',
-    'p.deletedAt',
-    'p.hidden',
-    eb.cast<number>('i.idx', 'integer').as('idx'),
-    'peh.creatorId as postEditCreatorId',
-    'peh.createdAt as postEditCreatedAt',
-    'peh.reason as postEditReason',
-  ])
+  return getPostsBaseQuery(kysely, topicId, q)
+    .select((eb) => [
+      'p.id',
+      'p.topicId',
+      'p.creatorId',
+      'p.createdAt',
+      'p.updatedAt',
+      'p.content',
+      'p.deletedAt',
+      'p.hidden',
+      eb.cast<number>('i.idx', 'integer').as('idx'),
+      'peh.creatorId as postEditCreatorId',
+      'peh.createdAt as postEditCreatedAt',
+      'peh.reason as postEditReason',
+    ])
+    .orderBy('p.id')
+    .limit(limit)
+    .offset(offset)
+}
 
-  if (q) {
-    query = query.where((eb) => sql`POSITION(${q} in ${eb.ref('p.content')}) > 0`)
-  }
+function getUserVisitorMessagesBaseQuery(kysely: Kysely<DB>, userId: number) {
+  return kysely
+    .selectFrom('postVisitorMessage as pvm')
+    .innerJoin('post as p', 'pvm.postId', 'p.id')
+    .innerJoin('postIdx as i', 'p.id', 'i.id')
+    .leftJoin('lastEditForPost as lefp', 'p.id', 'lefp.postId')
+    .leftJoin('postEditHistory as peh', 'lefp.postEditId', 'peh.id')
+    .where('pvm.forUser', '=', userId)
+}
 
-  query = query.orderBy('p.id').limit(limit).offset(offset)
+export function getUserVisitorMessagesCountQuery(kysely: Kysely<DB>, userId: number) {
+  return getUserVisitorMessagesBaseQuery(kysely, userId).select(kysely.fn.countAll<bigint>().as('count'))
+}
 
-  return query
+export function getUserVisitorMessagesQuery(kysely: Kysely<DB>, userId: number, limit: number, offset: number) {
+  return getUserVisitorMessagesBaseQuery(kysely, userId)
+    .select((eb) => [
+      'p.id',
+      'p.topicId',
+      'p.creatorId',
+      'p.createdAt',
+      'p.updatedAt',
+      'p.content',
+      'p.deletedAt',
+      'p.hidden',
+      eb.cast<number>('i.idx', 'integer').as('idx'),
+      'peh.creatorId as postEditCreatorId',
+      'peh.createdAt as postEditCreatedAt',
+      'peh.reason as postEditReason',
+    ])
+    .orderBy('p.id desc')
+    .limit(limit)
+    .offset(offset)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

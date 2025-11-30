@@ -70,13 +70,15 @@ model User {
   occupation String?
   inGameName String? @map("in_game_name")
 
-  UserGroup       UserGroup         @relation(fields: [userGroupId], references: [id])
-  Avatar          Avatar?           @relation(fields: [avatarId], references: [id])
-  Topics          Topic[]
-  TopicTags       TopicTag[]
-  Posts           Post[]
-  PostEditHistory PostEditHistory[]
-  PostPollVote    PostPollVote[]
+  UserGroup                    UserGroup             @relation(fields: [userGroupId], references: [id])
+  Avatar                       Avatar?               @relation(fields: [avatarId], references: [id])
+  Topics                       Topic[]
+  TopicTags                    TopicTag[]
+  Posts                        Post[]
+  PostEditHistory              PostEditHistory[]
+  PostPollVote                 PostPollVote[]
+  PostVisitorMessages          PostVisitorMessage[]
+  TopicPrivateMessageRecipient TopicPrivateMessage[]
 
   @@map("user")
 }
@@ -119,11 +121,12 @@ model Topic {
   Forum   Forum @relation(fields: [forumId], references: [id])
   Creator User? @relation(fields: [creatorId], references: [id])
 
-  RedirectTo    TopicRedirect?   @relation("RedirectFrom")
-  RedirectsFrom TopicRedirect[]  @relation("RedirectTo")
-  TopicTags     TopicTag[]
-  Posts         Post[]
-  LastPost      LastPostInTopic?
+  RedirectTo          TopicRedirect?        @relation("RedirectFrom")
+  RedirectsFrom       TopicRedirect[]       @relation("RedirectTo")
+  TopicTags           TopicTag[]
+  Posts               Post[]
+  LastPost            LastPostInTopic?
+  TopicPrivateMessage TopicPrivateMessage[]
 
   @@index([forumId, slug])
   @@map("topic")
@@ -167,14 +170,15 @@ model Post {
   deletedAt DateTime? @map("deleted_at")
   hidden    Boolean
 
-  Topic           Topic             @relation(fields: [topicId], references: [id])
-  Creator         User?             @relation(fields: [creatorId], references: [id])
-  EditHistory     PostEditHistory[]
-  PostPoll        PostPoll?
-  PostLink        PostLink[]
-  LastPostInTopic LastPostInTopic?
-  PostIdx         PostIdx?
-  LastPostEdit    LastPostEdit?
+  Topic              Topic               @relation(fields: [topicId], references: [id])
+  Creator            User?               @relation(fields: [creatorId], references: [id])
+  EditHistory        PostEditHistory[]
+  PostPoll           PostPoll?
+  PostLink           PostLink[]
+  LastPostInTopic    LastPostInTopic?
+  PostIdx            PostIdx?
+  LastPostEdit       LastPostEdit?
+  PostVisitorMessage PostVisitorMessage?
 
   @@map("post")
 }
@@ -234,6 +238,29 @@ model PostLink {
   urlTitle String @map("url_title")
 
   Post Post @relation(fields: [postId], references: [id])
+
+  @@map("post_link")
+}
+
+model PostVisitorMessage {
+  postId  Int @id @map("post_id")
+  forUser Int @map("for_user")
+
+  Post Post @relation(fields: [postId], references: [id])
+  User User @relation(fields: [forUser], references: [id])
+
+  @@map("post_visitor_message")
+}
+
+model TopicPrivateMessage {
+  topicId Int @map("topic_id")
+  sentTo  Int @map("sent_to")
+
+  Topic Topic @relation(fields: [topicId], references: [id])
+  User  User  @relation(fields: [sentTo], references: [id])
+
+  @@id([topicId, sentTo])
+  @@map("topic_private_message")
 }
 
 model Smilie {
@@ -241,6 +268,8 @@ model Smilie {
   title String
   text  String
   path  String
+
+  @@map("smilie")
 }
 
 view LastPostInTopic {

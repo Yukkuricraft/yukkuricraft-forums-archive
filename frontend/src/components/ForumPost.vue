@@ -32,6 +32,7 @@
           <div class="is-flex is-justify-content-space-between">
             <small class="is-size-7">{{ localeStore.formatDate(post.createdAt) }}</small>
             <router-link
+              v-if="pageProps"
               :to="{
                 name: 'posts',
                 params: { ...pageProps.routeParams, topicId: pageProps.topicId, pageStr: pageProps.pageStr },
@@ -75,7 +76,7 @@ const localeStore = useLocaleStore()
 
 const props = defineProps<{
   post: Post
-  pageProps: {
+  pageProps?: {
     routeParams: TopicRoute
     topicId: string
     pageStr?: string

@@ -9,6 +9,8 @@ import type { PrismaClient } from '@yukkuricraft-forums-archive/database'
 import discordIdMappings from './discordIdMappings.js'
 import { getSignedCookie, setSignedCookie, deleteCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
+import { makeOutTopic, topicIncludeRequest } from '@yukkuricraft-forums-archive/types/topic'
+import { topicOrder } from './topic.js'
 
 const discord = new Discord(
   getenv('DISCORD_CLIENT_ID'),
@@ -130,6 +132,84 @@ app
 
     return c.json({ discordName: authInfo.discordName, user, isAdmin: authInfo.isAdmin, isStaff: authInfo.isStaff })
   })
+  .get(
+    'api/@me/privateMessages',
+    zValidator(
+      'query',
+      z.object({
+        page: z.string().pipe(z.coerce.number()).pipe(z.int().positive().min(1)).default(1),
+        pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30).min(1)).default(10),
+        sortBy: z.enum(['dateLastUpdate', 'dateStartedPost', 'replies', 'title', 'members']).default('dateLastUpdate'),
+        order: z.enum(['asc', 'desc']).default('desc'),
+      }),
+    ),
+    async (c) => {
+      const authInfo = await getAuthInfo(c)
+      if (!authInfo || !authInfo.userId) {
+        c.status(404)
+        return c.json({ error: 'not found' })
+      }
+      const { page, sortBy, order, pageSize } = c.req.valid('query')
+
+      const userId = authInfo.userId
+      const prisma: PrismaClient = c.get('prisma')
+      const res = await prisma.topic.findMany({
+        relationLoadStrategy: 'join',
+        include: topicIncludeRequest,
+        where: {
+          forumId: 8,
+          OR: [
+            {
+              creatorId: userId,
+            },
+            {
+              TopicPrivateMessage: {
+                some: {
+                  sentTo: userId,
+                },
+              },
+            },
+          ],
+        },
+        orderBy: topicOrder(sortBy, order),
+        skip: pageSize * (page - 1),
+        take: pageSize,
+      })
+
+      const result = res.map((row) => makeOutTopic(row))
+      return c.json(result)
+    },
+  )
+  .get('api/@me/privateMessages/count', async (c) => {
+    const authInfo = await getAuthInfo(c)
+    if (!authInfo || !authInfo.userId) {
+      c.status(404)
+      return c.json({ error: 'not found' })
+    }
+
+    const userId = authInfo.userId
+    const prisma: PrismaClient = c.get('prisma')
+
+    const res = await prisma.topic.count({
+      where: {
+        forumId: 8,
+        OR: [
+          {
+            creatorId: userId,
+          },
+          {
+            TopicPrivateMessage: {
+              some: {
+                sentTo: userId,
+              },
+            },
+          },
+        ],
+      },
+    })
+
+    return c.json({ count: res })
+  })
 
 export default app
 
@@ -189,6 +269,11 @@ export async function ensureCanAccessTopic(c: Context, topicId: number): Promise
           requiresStaff: true,
         },
       },
+      TopicPrivateMessage: {
+        select: {
+          sentTo: true,
+        },
+      },
     },
     where: {
       id: topicId,
@@ -200,7 +285,11 @@ export async function ensureCanAccessTopic(c: Context, topicId: number): Promise
     return authInfo
   }
 
-  if (!canAccessForum(authInfo, topic.Forum)) {
+  const isPm = topic.TopicPrivateMessage.length > 0
+  const isMemberOfPm =
+    topic.creatorId === authInfo?.userId || topic.TopicPrivateMessage.some((pm) => pm.sentTo === authInfo?.userId)
+
+  if (!canAccessForum(authInfo, topic.Forum) && (!isPm || !isMemberOfPm)) {
     throw new HTTPException(403, { message: 'Forbidden' })
   }
 

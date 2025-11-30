@@ -21,7 +21,7 @@
               }"
               @click="topicStore.selectTopic(topic)"
             >
-              <h2 class="h4">{{ decodeHtmlEntities(topic.title) }}</h2>
+              <h2 class="h4">{{ topic.title === '' ? 'Title' : decodeHtmlEntities(topic.title) }}</h2>
             </router-link>
             <div class="byline">
               <p>

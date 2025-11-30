@@ -3,7 +3,7 @@
     <div class="is-flex is-justify-content-space-between is-align-items-end">
       <div>
         <h1 class="title">{{ forum.title }}</h1>
-        <p class="subtitle">{{ decodeHtmlEntities(forum.description) }}</p>
+        <p class="subtitle">{{ forum.description && decodeHtmlEntities(forum.description) }}</p>
       </div>
 
       <div class="field has-addons">
@@ -56,8 +56,8 @@ import StickyTopics from '@/components/StickyTopics.vue'
 import TopicsList from '@/components/TopicsList.vue'
 import type { TopicsOrderingRequestParams } from '@/stores/topics.ts'
 import type { ForumRoute } from '@/util/RouteTypes.ts'
-import { decode as decodeHtmlEntities } from 'html-entities'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
+import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 
 const props = defineProps<{ routeParams: ForumRoute; page: number; forum: ForumTree }>()
 

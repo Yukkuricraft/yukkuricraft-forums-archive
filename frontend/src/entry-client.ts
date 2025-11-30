@@ -7,10 +7,10 @@ import { Api, apiKey } from '@/util/Api.ts'
 import { hydrate } from '@tanstack/vue-query'
 import { makeUsersLoader, userLoaderInjectKey } from '@/composables/apiComposables.ts'
 
-const { app, router, pinia, queryClient } = createYcForumsApp()
+const api = new Api('/')
+const { app, router, pinia, queryClient } = createYcForumsApp(api)
 const head = createHead()
 app.use(head)
-const api = new Api('/')
 app.provide(apiKey, api)
 app.provide(userLoaderInjectKey, makeUsersLoader(api))
 
