@@ -1,11 +1,6 @@
 <template>
   <h2 class="title is-4 mt-3">Topics</h2>
-  <TopicSummary
-    v-for="topic in topics"
-    :key="'topic-' + topic.title"
-    :route-params="routeParams"
-    :topic="topic"
-  />
+  <TopicSummary v-for="topic in topics" :key="'topic-' + topic.title" :route-params="routeParams" :topic="topic" />
 </template>
 
 <script setup lang="ts">

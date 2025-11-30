@@ -1,9 +1,9 @@
 import { PrismaClient, type Prisma } from '../generated/prisma/client.js'
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaPg } from '@prisma/adapter-pg'
 
 const adapter = new PrismaPg({
   connectionString: process.env.DB_URL,
-});
+})
 
 const options = {
   log: [
@@ -11,7 +11,7 @@ const options = {
     { level: 'warn', emit: 'event' },
     { level: 'query', emit: 'stdout' },
   ],
-  adapter
+  adapter,
 } satisfies Prisma.PrismaClientOptions
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient<'query' | 'error' | 'warn'> }

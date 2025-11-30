@@ -72,7 +72,9 @@
               >
                 Me
               </router-link>
-              <router-link class="navbar-item" v-if="activeUser.user" :to="{ name: 'private-messages' }">Private messages</router-link>
+              <router-link class="navbar-item" v-if="activeUser.user" :to="{ name: 'private-messages' }"
+                >Private messages</router-link
+              >
               <a class="navbar-item" href="/signout">Sign out</a>
             </div>
           </div>

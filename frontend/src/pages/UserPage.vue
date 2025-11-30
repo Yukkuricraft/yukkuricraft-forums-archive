@@ -6,7 +6,7 @@
     <div style="grid-area: main" class="box">
       <MarkdownLazy class="content" v-if="user.biography" :content="user.biography.replaceAll('\r\n', '\n')" />
     </div>
-    <div style="grid-area: visitor-messages; margin-bottom: 0;" class="box">
+    <div style="grid-area: visitor-messages; margin-bottom: 0" class="box">
       <ForumPost v-for="post in posts" :key="'post-' + post.id" :post="post" />
 
       <Pagination
@@ -18,7 +18,7 @@
       />
     </div>
     <div style="grid-area: sidebar">
-      <div class="card" style="height: 100%;">
+      <div class="card" style="height: 100%">
         <div class="card-image">
           <UserAvatar
             :user-id="user.id"

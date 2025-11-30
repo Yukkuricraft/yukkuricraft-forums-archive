@@ -22,7 +22,7 @@ type Render = (
   manifest: { [k: string]: string[] },
   requestsBase: string,
   locales: string | string[] | undefined,
-  cookieHeader: string | null
+  cookieHeader: string | null,
 ) => Promise<{ html: string; preloadLinks: string; head: Unhead<any>; piniaState: string; queryClientState: string }>
 
 function fileCwd() {

@@ -13,11 +13,13 @@
 # Search for TODO and fix (Only if it's bad)
 
 # Posts
+
 - Post edit history, diffing
 - Post link
 - Post polls
 
 # Topics
+
 - Topic redirects
 - Topic tags
 

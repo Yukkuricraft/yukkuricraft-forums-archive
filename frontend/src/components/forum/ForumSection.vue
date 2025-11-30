@@ -30,6 +30,6 @@ const props = defineProps<{
 const newForumPath = computed(() =>
   props.forum.slug === props.routeParams.forumPath?.at(-1)
     ? props.routeParams.forumPath
-    : [...props.routeParams.forumPath ?? [], props.forum.slug],
+    : [...(props.routeParams.forumPath ?? []), props.forum.slug],
 )
 </script>
