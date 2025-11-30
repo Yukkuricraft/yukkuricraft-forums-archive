@@ -5,10 +5,11 @@
 3. Non-forum forums and topics
 4. Test dockerization
 5. User page
-6. Deleted topics
-7. Deleted posts
+6. Show deleted topics in a special way
+7. Show deleted posts in a special way
 8. Set permissions of staff users in the DB
 9. Show recipients of private messages
+10. Fix breadcrumbs for private messages
 
 # Search for TODO and fix (Only if it's bad)
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="site">
+  <div class="site" style="height: 100%">
     <Navbar />
 
     <div class="site-content">
