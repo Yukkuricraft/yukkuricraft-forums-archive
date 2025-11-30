@@ -175,9 +175,15 @@ export const customPreset = vuePreset.extend((defTags) => ({
       return spanRes
     }
 
-    const url = validateUrl(reference)
+    let url = validateUrl(reference)
     if (!url) {
       return spanRes
+    }
+    if (url.startsWith('https://yukkuricraft.net/forum/')) {
+      url = url.replace('https://yukkuricraft.net/forum/', '/forum/')
+    }
+    if (url.startsWith('https://forums.yukkuricraft.net/')) {
+      url = url.replace('https://forums.yukkuricraft.net/', '/')
     }
 
     if (url.startsWith('/')) {
