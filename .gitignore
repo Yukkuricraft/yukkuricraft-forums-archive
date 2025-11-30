@@ -13,8 +13,8 @@ node_modules/
 .turbo
 backend/logs
 
-frontend/dist
-backend/dist
+dist
+frontend/distserver
 
 # env
 .env
