@@ -2,8 +2,7 @@
   <TopicSummary
     v-if="(topic.forum.slug ?? [])[0] === 'forum'"
     :topic="convertedTopic"
-    :section-slug="sectionSlug"
-    :forum-path="forumPath"
+    :route-params="{ forumPath: props.topic.forum.slug ?? [] }"
   />
   <div v-else>
     <!-- TODO -->
@@ -18,17 +17,6 @@ import TopicSummary from '@/components/topic/TopicSummary.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{ topic: SearchTopicType }>()
-
-const sectionSlug = computed(() => {
-  const slug = props.topic.forum.slug ?? []
-  if (slug.length < 2) return ''
-  return slug[1]
-})
-
-const forumPath = computed(() => {
-  const slug = props.topic.forum.slug ?? []
-  return slug.slice(2)
-})
 
 const convertedTopic = computed<Topic>(() => {
   const t = props.topic

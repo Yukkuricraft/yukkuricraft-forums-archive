@@ -40,7 +40,7 @@
           </h2>
           <span class="subtitle">{{ user.title ?? user.UserGroup?.userTitle }}</span>
           <p>Joined: {{ localeStore.formatMonthYear(user.createdAt) }}</p>
-          <p>Location: {{ decodeHtmlEntities(user.location) }}</p>
+          <p>Location: {{ user.location && decodeHtmlEntities(user.location) }}</p>
         </div>
       </div>
     </div>
