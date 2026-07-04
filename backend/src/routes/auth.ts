@@ -233,6 +233,10 @@ function canAccessForum(authInfo: AuthInfo | null, forum: { requiresStaff: boole
   return (!forum.requiresStaff || authInfo?.isStaff) && (!forum.requiresAdmin || authInfo?.isAdmin)
 }
 
+export function canSeeDeleted(authInfo: AuthInfo | null): boolean {
+  return Boolean(authInfo?.isStaff || authInfo?.isAdmin)
+}
+
 export async function ensureCanAccessForum(c: Context, forumId: number): Promise<AuthInfo | null> {
   const authInfo = await getAuthInfo(c)
   const prisma: PrismaClient = c.get('prisma')
@@ -291,6 +295,10 @@ export async function ensureCanAccessTopic(c: Context, topicId: number): Promise
 
   if (!canAccessForum(authInfo, topic.Forum) && (!isPm || !isMemberOfPm)) {
     throw new HTTPException(403, { message: 'Forbidden' })
+  }
+
+  if ((topic.deletedAt != null || topic.hidden) && !canSeeDeleted(authInfo)) {
+    throw new HTTPException(404, { message: 'Not found' })
   }
 
   return authInfo

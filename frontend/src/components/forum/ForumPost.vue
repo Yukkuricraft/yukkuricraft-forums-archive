@@ -1,6 +1,15 @@
 <template>
-  <div class="card">
+  <div class="card" :class="{ 'is-deleted': isDeleted, 'is-hidden': isHidden }">
     <div class="card-content">
+      <div v-if="isDeleted" class="state-notice is-deleted">
+        <FontAwesomeIcon :icon="faTrashCan" />
+        <span>This post was deleted and is only visible to staff.</span>
+      </div>
+      <div v-else-if="isHidden" class="state-notice is-hidden">
+        <FontAwesomeIcon :icon="faEyeSlash" />
+        <span>This post is hidden and is only visible to staff.</span>
+      </div>
+
       <div class="media">
         <div class="media-left" style="max-width: 128px; margin-right: 2rem">
           <div class="text-center">
@@ -32,7 +41,7 @@
           <div class="is-flex is-justify-content-space-between">
             <small class="is-size-7">{{ localeStore.formatDate(post.createdAt) }}</small>
             <router-link
-              v-if="pageProps"
+              v-if="pageProps && post.idx != null"
               :to="{
                 name: 'posts',
                 params: { ...pageProps.routeParams, topicId: pageProps.topicId, pageStr: pageProps.pageStr },
@@ -71,6 +80,8 @@ import UserLink from '@/components/UserLink.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { useUser } from '@/composables/apiComposables.ts'
 import type { TopicRoute } from '@/util/RouteTypes.ts'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrashCan, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
 const localeStore = useLocaleStore()
 
@@ -82,6 +93,9 @@ const props = defineProps<{
     pageStr?: string
   }
 }>()
+
+const isDeleted = computed(() => Boolean(props.post.deletedAt))
+const isHidden = computed(() => props.post.hidden && !isDeleted.value)
 
 const { data: creator, suspense: creatorSuspense } = useUser(computed(() => props.post.creatorId))
 const { data: lastEditUser, suspense: lastEditUserSuspense } = useUser(computed(() => props.post.postEditCreatorId))

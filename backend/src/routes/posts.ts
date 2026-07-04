@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import { getPostsCountQuery, getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
-import { ensureCanAccessTopic } from './auth.js'
+import { canSeeDeleted, ensureCanAccessTopic } from './auth.js'
 
 const app = new Hono()
   .get(
@@ -20,9 +20,17 @@ const app = new Hono()
       const { page, q, pageSize } = c.req.valid('query')
       const { topicId } = c.req.valid('param')
       const prisma = c.get('prismaKysely')
-      await ensureCanAccessTopic(c, topicId)
+      const authInfo = await ensureCanAccessTopic(c, topicId)
+      const includeDeleted = canSeeDeleted(authInfo)
 
-      const res = await getPostsQuery(prisma.$kysely, topicId, q ?? '', pageSize, pageSize * (page - 1)).execute()
+      const res = await getPostsQuery(
+        prisma.$kysely,
+        topicId,
+        q ?? '',
+        pageSize,
+        pageSize * (page - 1),
+        includeDeleted,
+      ).execute()
 
       if (res.length === 0) {
         const topicExists = await prisma.topic.count({ where: { id: topicId } })
@@ -49,9 +57,10 @@ const app = new Hono()
       const { q } = c.req.valid('query')
       const { topicId } = c.req.valid('param')
       const prisma = c.get('prismaKysely')
-      await ensureCanAccessTopic(c, topicId)
+      const authInfo = await ensureCanAccessTopic(c, topicId)
+      const includeDeleted = canSeeDeleted(authInfo)
 
-      const res = await getPostsCountQuery(prisma.$kysely, topicId, q ?? '').execute()
+      const res = await getPostsCountQuery(prisma.$kysely, topicId, q ?? '', includeDeleted).execute()
       return c.json({ posts: Number(res[0].count) })
     },
   )

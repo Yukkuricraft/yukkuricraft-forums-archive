@@ -1,6 +1,15 @@
 <template>
-  <div class="card">
+  <div class="card" :class="{ 'is-deleted': isDeleted, 'is-hidden': isHidden }">
     <div class="card-content">
+      <div v-if="isDeleted" class="state-notice is-compact is-deleted">
+        <FontAwesomeIcon :icon="faTrashCan" />
+        <span>This topic was deleted and is only visible to staff.</span>
+      </div>
+      <div v-else-if="isHidden" class="state-notice is-compact is-hidden">
+        <FontAwesomeIcon :icon="faEyeSlash" />
+        <span>This topic is hidden and is only visible to staff.</span>
+      </div>
+
       <div class="media">
         <div class="media-left">
           <UserAvatar
@@ -72,11 +81,16 @@ import { useLocaleStore } from '@/stores/localization.ts'
 import { useUser } from '@/composables/apiComposables.ts'
 import type { ForumRoute } from '@/util/RouteTypes.ts'
 import UserLink from '@/components/UserLink.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrashCan, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
 const topicStore = useTopicsStore()
 const localeStore = useLocaleStore()
 
 const props = defineProps<{ topic: Topic; routeParams: ForumRoute }>()
+
+const isDeleted = computed(() => Boolean(props.topic.deletedAt))
+const isHidden = computed(() => props.topic.hidden && !isDeleted.value)
 
 const { data: creator, suspense: creatorSuspense } = await useUser(computed(() => props.topic.creatorId))
 const { data: lastPostUser, suspense: lastPostUserSuspense } = await useUser(

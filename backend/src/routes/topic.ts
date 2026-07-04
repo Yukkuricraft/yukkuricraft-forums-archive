@@ -4,7 +4,11 @@ import { type Context, Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import { topicIncludeRequest, makeOutTopic } from '@yukkuricraft-forums-archive/types/topic'
-import { ensureCanAccessForum, ensureCanAccessTopic } from './auth.js'
+import { type AuthInfo, canSeeDeleted, ensureCanAccessForum, ensureCanAccessTopic } from './auth.js'
+
+function deletedTopicFilter(authInfo: AuthInfo | null): Prisma.TopicWhereInput {
+  return canSeeDeleted(authInfo) ? {} : { deletedAt: null, hidden: false }
+}
 
 export function topicOrder(
   sortBy: 'dateLastUpdate' | 'dateStartedPost' | 'replies' | 'title' | 'members',
@@ -51,7 +55,7 @@ const app = new Hono()
     async (c) => {
       const { page, sortBy, order, pageSize } = c.req.valid('query')
       const { forumId: parentId } = c.req.valid('param')
-      await ensureCanAccessForum(c, parentId)
+      const authInfo = await ensureCanAccessForum(c, parentId)
 
       const prisma: PrismaClient = c.get('prisma')
       const res = await prisma.topic.findMany({
@@ -60,6 +64,7 @@ const app = new Hono()
         where: {
           sticky: false,
           forumId: parentId,
+          ...deletedTopicFilter(authInfo),
         },
         orderBy: topicOrder(sortBy, order),
         skip: pageSize * (page - 1),
@@ -88,7 +93,7 @@ const app = new Hono()
       const { sortBy, order } = c.req.valid('query')
       const { forumId: parentId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')
-      await ensureCanAccessForum(c, parentId)
+      const authInfo = await ensureCanAccessForum(c, parentId)
 
       const res = await prisma.topic.findMany({
         relationLoadStrategy: 'join',
@@ -96,6 +101,7 @@ const app = new Hono()
         where: {
           sticky: true,
           forumId: parentId,
+          ...deletedTopicFilter(authInfo),
         },
         orderBy: topicOrder(sortBy, order),
       })
