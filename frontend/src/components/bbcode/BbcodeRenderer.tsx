@@ -33,6 +33,18 @@ function attr(attrs: Record<string, unknown> | undefined) {
   return k
 }
 
+const isWhitespaceNode = (node: NodeContent): boolean => typeof node === 'string' && node.trim() === ''
+
+// Trims leading/trailing whitespace-only string nodes from a list item's content,
+// so the surrounding newlines around `[*]` markers don't turn into stray <br>s.
+function trimItemContent(content: NodeContent[]): NodeContent[] {
+  let start = 0
+  let end = content.length
+  while (start < end && isWhitespaceNode(content[start])) start++
+  while (end > start && isWhitespaceNode(content[end - 1])) end--
+  return content.slice(start, end)
+}
+
 function validateUrl(urlStr: string): string | undefined {
   try {
     const url = new URL(urlStr)
@@ -136,12 +148,56 @@ export const customPreset = vuePreset.extend((defTags) => ({
     attrs: {},
     tag: 'p',
   }),
-  // TODO: Handle creating ul elements
   li: (node) => ({
     ...node,
     attrs: {},
     tag: 'li',
   }),
+  // vBulletin lists use `[*]` item markers rather than `[li]`/`[/li]` tags. Since `*` isn't a
+  // registered tag it arrives as a literal "[*]" string node, so we split the list content on it
+  // ourselves to build the `<li>`s. `[list=n]` (numbered/lettered) becomes an `<ol type=n>`.
+  list: (node) => {
+    const rawContent = node.content
+    const content = Array.isArray(rawContent) ? rawContent : rawContent != null ? [rawContent] : []
+
+    const items: NodeContent[][] = []
+    let current: NodeContent[] | null = null
+    const startItem = () => {
+      current = []
+      items.push(current)
+    }
+    const pushToken = (token: NodeContent) => {
+      current?.push(token)
+    }
+
+    for (const token of content) {
+      if (typeof token === 'string' && token.includes('[*]')) {
+        // A single string node may hold the marker plus following text, e.g. "[*]first".
+        token.split('[*]').forEach((part, i) => {
+          if (i > 0) startItem()
+          if (part !== '') pushToken(part)
+        })
+      } else if (token && typeof token === 'object' && token.tag === '*') {
+        startItem()
+      } else {
+        pushToken(token)
+      }
+    }
+
+    const liNodes: TagNodeObject[] = items.map((itemContent) => ({
+      attrs: {},
+      content: trimItemContent(itemContent),
+      tag: 'li',
+    }))
+
+    const type = attr(node.attrs)
+    return {
+      ...node,
+      attrs: type ? { type } : {},
+      content: liNodes,
+      tag: type ? 'ol' : 'ul',
+    }
+  },
   // TODO: Somehow remove extra newlines after this
   // TODO: Space attr problematic
   quote: (node) => ({
@@ -381,7 +437,43 @@ export const customPreset = vuePreset.extend((defTags) => ({
     ...node,
     attrs: {},
     tag: 'strike',
-  })
+  }),
+  sub: (node) => ({
+    ...node,
+    attrs: {},
+    tag: 'sub',
+  }),
+  sup: (node) => ({
+    ...node,
+    attrs: {},
+    tag: 'sup',
+  }),
+  // We intentionally don't render email tags
+  email: (node) => ({
+    ...node,
+    attrs: {},
+    tag: 'span',
+  }),
+  // We do not have the original attachment data, so we can only show a placeholder
+  attach: () => ({
+    content: '[Attachment]',
+    attrs: {},
+    tag: 'span',
+  }),
+  // [post]99305[/post] / [post=99305]label[/post] link to another post by id. TODO: Implement properly
+  post: (node) => {
+    let reference = attr(node.attrs) ?? node.content
+    if (Array.isArray(reference) && reference.length === 1) {
+      reference = reference[0]
+    }
+
+    const id = typeof reference === 'string' ? reference.trim() : ''
+    return {
+      content: id !== '' ? `[Post #${id}]` : '[Post]',
+      attrs: {},
+      tag: 'span',
+    }
+  },
 }))
 
 function unparseTree(tree: TagNodeObject): string {
@@ -513,6 +605,7 @@ const plugins = [
     'pre',
     'ol',
     'ul',
+    'li',
     'p',
     'hr',
     'div',
@@ -522,6 +615,8 @@ const plugins = [
     'tbody',
     'code',
     'strike',
+    'sub',
+    'sup',
   ]),
   lineBreakPlugin(),
   mergeStringsPlugin(),
@@ -606,6 +701,11 @@ export const BbcodeRenderer = defineComponent({
         'img2',
         'indent',
         'codei',
+        'sub',
+        'sup',
+        'email',
+        'attach',
+        'post',
       ],
       caseFreeTags: true,
     }).tree

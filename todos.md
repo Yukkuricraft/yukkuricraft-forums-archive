@@ -24,11 +24,6 @@
 - Topic redirects
 - Topic tags
 
-# BBCode hell
-
-- Find more unimplemented bbcode
-- li bbcode tag
-
 # Nice to have
 
 - Toggleable signatures
