@@ -175,7 +175,7 @@ app
         take: pageSize,
       })
 
-      const result = res.map((row) => makeOutTopic(row))
+      const result = res.map((row) => makeOutTopic(row, canSeeDeleted(authInfo)))
       return c.json(result)
     },
   )
