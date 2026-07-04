@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar is-primary is-fixed-top" role="navigation" aria-level="main navigation">
-    <div class="container">
+    <div class="container" :class="{ 'is-wide': settingsStore.wideScreen }">
       <div class="navbar-brand">
         <router-link :to="{ name: 'home' }" class="navbar-item has-text-white">
           Yukkuricraft forums archive
@@ -60,6 +60,10 @@
               <label class="navbar-item">
                 <input v-model="settingsStore.showSignatures" type="checkbox" class="mr-2" />
                 Show signatures
+              </label>
+              <label class="navbar-item">
+                <input v-model="settingsStore.wideScreen" type="checkbox" class="mr-2" />
+                Wide screen
               </label>
             </div>
           </div>

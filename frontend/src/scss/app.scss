@@ -42,6 +42,14 @@ a:hover {
   }
 }
 
+// Widen the container past Bulma's fullhd cap.
+// The :not() chain out-specifies Bulma's own container rules.
+.container.is-wide:not(.is-max-tablet):not(.is-max-desktop):not(.is-max-widescreen) {
+  @include mixins.desktop {
+    max-width: min(100% - 3rem, 1600px);
+  }
+}
+
 .container-error {
   margin-top: 5%;
   text-align: center;

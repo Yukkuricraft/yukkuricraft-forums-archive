@@ -3,7 +3,11 @@
     <Navbar />
 
     <div class="site-content">
-      <div id="contentRoot" class="container" :class="route.meta.isError ? 'container-error' : ''">
+      <div
+        id="contentRoot"
+        class="container"
+        :class="{ 'container-error': route.meta.isError, 'is-wide': settingsStore.wideScreen }"
+      >
         <YcBreadcrumbs />
         <router-view v-slot="{ Component }">
           <template v-if="Component">

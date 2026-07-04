@@ -18,7 +18,3 @@
 # Topics
 
 - Topic redirects
-
-# Nice to have
-
-* Add a wide screen option (together with the sidebar toggle). Makes the container wider
