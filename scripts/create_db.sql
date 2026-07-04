@@ -182,9 +182,6 @@ FROM t
 -- Not dealing with content types Gallery (53), Photo(54), Attach(55), Video(56), sigpic
 -- Not dealing with post_thanks
 
--- TODO: Deal with forumpermission, permission
--- TODO: Deal with thread_post. Needed?
-
 CREATE TABLE topic
 (
     id           INT PRIMARY KEY,

@@ -32,7 +32,8 @@ export function useStickyTopics(forumId: Ref<number | string>, params: Ref<Topic
   return useQuery({
     queryKey: ['api', 'forums', forumId, 'stickyTopics', forumId, params],
     queryFn: ({ signal }) => api.get<Topic[]>(`/api/forums/${forumId.value}/stickyTopics`, { ...params.value }, signal),
-    placeholderData: keepPreviousData, //TODO: Only for current forum
+    placeholderData: (prev, prevQuery) =>
+      prevQuery && String(prevQuery.queryKey[2]) === String(forumId.value) ? prev : undefined,
   })
 }
 
@@ -62,7 +63,8 @@ export function usePosts(topicId: Ref<number | string>, params: Ref<{ q?: string
   return useQuery({
     queryKey: ['api', 'topics', topicId, 'posts', params],
     queryFn: ({ signal }) => api.get<Post[]>(`/api/topics/${topicId.value}/posts`, { ...params.value }, signal),
-    placeholderData: keepPreviousData, //TODO: Only for current topic
+    placeholderData: (prev, prevQuery) =>
+      prevQuery && String(prevQuery.queryKey[2]) === String(topicId.value) ? prev : undefined,
   })
 }
 
@@ -104,7 +106,8 @@ export function useVisitorMessages(userId: Ref<number | string>, params: Ref<{ p
   return useQuery({
     queryKey: ['api', 'user', userId, 'visitorMessages', params],
     queryFn: ({ signal }) => api.get<Post[]>(`/api/user/${userId.value}/visitorMessages`, { ...params.value }, signal),
-    placeholderData: keepPreviousData, //TODO: Only for current user
+    placeholderData: (prev, prevQuery) =>
+      prevQuery && String(prevQuery.queryKey[2]) === String(userId.value) ? prev : undefined,
   })
 }
 

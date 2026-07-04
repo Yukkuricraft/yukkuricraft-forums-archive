@@ -6,6 +6,7 @@ import { lineBreakPlugin } from '@/components/bbcode/lineBreakPlugin.ts'
 import type { BBobCoreTagNodeTree, BBobPluginFunction, NodeContent, TagNodeObject } from '@bbob/types'
 import { type Component, defineComponent } from 'vue'
 import BbcodeQuote from '@/components/bbcode/BbcodeQuote.vue'
+import BbcodePostLink from '@/components/bbcode/BbcodePostLink.vue'
 import { parse } from '@bbob/parser'
 import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 import { RouterLink } from 'vue-router'
@@ -93,7 +94,7 @@ export const customPreset = vuePreset.extend((defTags) => ({
             case 2:
               return '10px'
             case 3:
-              return '12px' //TODO: Normal text size roughly
+              return '12px'
             case 4:
               return '20px'
             case 5:
@@ -142,7 +143,6 @@ export const customPreset = vuePreset.extend((defTags) => ({
     attrs: {},
     tag: 'span',
   }),
-  // TODO: Test
   p: (node) => ({
     ...node,
     attrs: {},
@@ -460,18 +460,26 @@ export const customPreset = vuePreset.extend((defTags) => ({
     attrs: {},
     tag: 'span',
   }),
-  // [post]99305[/post] / [post=99305]label[/post] link to another post by id. TODO: Implement properly
   post: (node) => {
-    let reference = attr(node.attrs) ?? node.content
+    const attrId = attr(node.attrs)
+    if (attrId != null) {
+      return {
+        ...node,
+        attrs: { postId: attrId.trim() },
+        tag: BbcodePostLink,
+      }
+    }
+
+    let reference = node.content
     if (Array.isArray(reference) && reference.length === 1) {
       reference = reference[0]
     }
-
     const id = typeof reference === 'string' ? reference.trim() : ''
     return {
-      content: id !== '' ? `[Post #${id}]` : '[Post]',
-      attrs: {},
-      tag: 'span',
+      ...node,
+      content: [],
+      attrs: { postId: id },
+      tag: BbcodePostLink,
     }
   },
 }))
@@ -536,8 +544,6 @@ function sanitizePlugin(allowedTags: (string | Component)[]): BBobPluginFunction
             end: content.end,
           } satisfies TagNodeObject
         }
-
-        // TODO: Validate style and other attributes
       }
 
       return content
@@ -597,6 +603,7 @@ const plugins = [
     BbcodeVideo,
     BbcodeSpoiler,
     BbcodeQuote,
+    BbcodePostLink,
     RouterLink,
     'span',
     'a',

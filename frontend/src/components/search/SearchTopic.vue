@@ -1,13 +1,5 @@
 <template>
-  <TopicSummary
-    v-if="(topic.forum.slug ?? [])[0] === 'forum'"
-    :topic="convertedTopic"
-    :route-params="{ forumPath: props.topic.forum.slug ?? [] }"
-  />
-  <div v-else>
-    <!-- TODO -->
-    TODO
-  </div>
+  <TopicSummary :topic="convertedTopic" :route-params="{ forumPath: props.topic.forum.slug ?? [] }" />
 </template>
 
 <script setup lang="ts">
