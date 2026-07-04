@@ -6,8 +6,7 @@
 4. Test dockerization
 5. User page
 6. Set permissions of staff users in the DB
-7. Show recipients of private messages
-8. Fix breadcrumbs for private messages
+7. Fix breadcrumbs for private messages
 
 # Search for TODO and fix (Only if it's bad)
 

@@ -37,6 +37,15 @@
                 Started by
                 <UserLink :user="creator ?? null" />, {{ localeStore.formatDate(topic.createdAt) }}
               </p>
+              <p v-if="topic.recipients.length">
+                To:
+                <template v-for="(recipient, i) in topic.recipients" :key="recipient.id">
+                  <router-link :to="{ name: 'user', params: { userId: recipient.id, userName: recipient.name } }">{{
+                    recipient.name
+                  }}</router-link
+                  ><span v-if="i < topic.recipients.length - 1">, </span>
+                </template>
+              </p>
             </div>
           </div>
 

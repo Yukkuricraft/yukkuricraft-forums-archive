@@ -37,6 +37,7 @@ const convertedTopic = computed<Topic>(() => {
       at: t.lastPost.createdAt ?? undefined,
       userId: t.lastPost.creatorId,
     },
+    recipients: [],
   } satisfies Topic
 })
 </script>

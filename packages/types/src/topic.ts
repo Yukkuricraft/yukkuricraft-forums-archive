@@ -22,6 +22,16 @@ export const topicIncludeRequest = {
     },
   },
   LastPost: lastPostInclude,
+  TopicPrivateMessage: {
+    select: {
+      User: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
 } as const satisfies Prisma.TopicInclude
 
 export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>) {
@@ -35,6 +45,11 @@ export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topic
     at: topic.LastPost?.Post?.createdAt,
     userId: topic.LastPost?.Post?.creatorId,
   }
+
+  const recipients = oldTopic.TopicPrivateMessage.map((pm) => ({
+    id: pm.User.id,
+    name: pm.User.name,
+  }))
 
   let redirectTo
   if (newTopic) {
@@ -66,6 +81,7 @@ export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topic
     postCount: oldTopic.postCount,
     redirectTo,
     lastPostSummary,
+    recipients,
   }
 }
 
