@@ -1,6 +1,8 @@
 LOAD DATABASE
-		FROM mysql://root:password@172.30.128.1/yc_forum_archive
-		INTO pgsql://postgres:password@172.30.128.1/yc_forums_archive
+		FROM mysql://katrix:password@localhost/yc_forum_archive
+		INTO pgsql://katrix:password@localhost/yc_forums_archive
 
-	WITH prefetch rows = 500, batch rows = 500, max parallel create index = 1;
+	WITH prefetch rows = 500, batch rows = 500, max parallel create index = 1
+
+	CAST column adminmessage.method to text drop typemod;
 

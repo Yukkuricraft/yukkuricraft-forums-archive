@@ -1,7 +1,13 @@
 -- Before loading into Postgres from MySQL, run these queries on the MySQL db.
+-- The SET is needed because the legacy data contains zero-dates (0000-00-00)
+-- that strict sql_mode rejects; it also lets the ALTER keep those values so the
+-- following UPDATE can null them out. YEAR(...) < 1900 avoids the invalid
+-- '1900-00-00' date literal that strict mode would otherwise reject.
 --
+-- SET SESSION sql_mode = '';
 -- ALTER TABLE `user` MODIFY COLUMN birthday_search DATE NULL;
--- UPDATE `user` SET birthday_search = NULL WHERE birthday_search < '1900-00-00';
+-- UPDATE `user` SET birthday_search = NULL
+--   WHERE birthday_search = '0000-00-00' OR YEAR(birthday_search) < 1900;
 
 --Conversion script based on the Discourse VB5 import script
 CREATE TABLE user_group
