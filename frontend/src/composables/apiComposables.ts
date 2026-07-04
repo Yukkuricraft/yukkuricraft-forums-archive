@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { Api, NotFoundError, useApi } from '@/util/Api.ts'
+import { Api, NotFoundError, useApi, type PostSearchResult } from '@/util/Api.ts'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { computed, inject, type InjectionKey, type MaybeRef, type Ref } from 'vue'
 import type { TopicsOrderingRequestParams, TopicsRequestParams } from '@/stores/topics.ts'
@@ -91,6 +91,25 @@ export function useVisitorMessages(userId: Ref<number | string>, params: Ref<{ p
     queryKey: ['api', 'user', userId, 'visitorMessages', params],
     queryFn: ({ signal }) => api.get<Post[]>(`/api/user/${userId.value}/visitorMessages`, { ...params.value }, signal),
     placeholderData: keepPreviousData, //TODO: Only for current user
+  })
+}
+
+export function useUserActivity(userName: Ref<string | undefined>, page: Ref<number>) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', 'search', 'userActivity', userName, page],
+    queryFn: ({ signal }) =>
+      api.get<PostSearchResult>(
+        '/api/search',
+        {
+          q: '',
+          searchJSON: JSON.stringify({ author: [userName.value], sort: { created: 'desc' } }),
+          p: page.value,
+        },
+        signal,
+      ),
+    placeholderData: keepPreviousData,
+    enabled: () => Boolean(userName.value),
   })
 }
 
