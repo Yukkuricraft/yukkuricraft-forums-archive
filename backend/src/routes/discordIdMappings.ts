@@ -18,7 +18,19 @@ const purp = '206905958838960128'
 
 export const discordIdAdmins = [remi, katrix, teshno, koko, luna]
 
-export const discordIdStaff = [mori, birb, sei, alorai, qsc, eiburine, nick, nucklearblt, redleaf, purp]
+export const discordIdStaff = [
+  ...discordIdAdmins,
+  mori,
+  birb,
+  sei,
+  alorai,
+  qsc,
+  eiburine,
+  nick,
+  nucklearblt,
+  redleaf,
+  purp,
+]
 
 export const discordIdToUserId = {
   [remi]: 1,

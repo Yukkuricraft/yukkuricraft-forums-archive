@@ -228,12 +228,42 @@ export async function getAuthInfo(c: Context): Promise<AuthInfo | null> {
   return JSON.parse(cookie) as AuthInfo | null
 }
 
-function canAccessForum(authInfo: AuthInfo | null, forum: { requiresStaff: boolean; requiresAdmin: boolean }) {
+export function canAccessForum(authInfo: AuthInfo | null, forum: { requiresStaff: boolean; requiresAdmin: boolean }) {
   return (!forum.requiresStaff || authInfo?.isStaff) && (!forum.requiresAdmin || authInfo?.isAdmin)
 }
 
 export function canSeeDeleted(authInfo: AuthInfo | null): boolean {
   return Boolean(authInfo?.isStaff || authInfo?.isAdmin)
+}
+
+/**
+ * Whether the given viewer is allowed to see this topic at all. Mirrors the checks in
+ * {@link ensureCanAccessTopic} (forum permissions, PM membership, deleted/hidden), but returns
+ * a boolean instead of throwing so callers can silently omit inaccessible topics.
+ */
+export function canAccessTopicRecord(
+  authInfo: AuthInfo | null,
+  topic: {
+    deletedAt: Date | null
+    hidden: boolean
+    creatorId: number | null
+    Forum: { requiresStaff: boolean; requiresAdmin: boolean }
+    TopicPrivateMessage: { sentTo: number }[]
+  },
+): boolean {
+  const isPm = topic.TopicPrivateMessage.length > 0
+  const isMemberOfPm =
+    topic.creatorId === authInfo?.userId || topic.TopicPrivateMessage.some((pm) => pm.sentTo === authInfo?.userId)
+
+  if (!canAccessForum(authInfo, topic.Forum) && (!isPm || !isMemberOfPm)) {
+    return false
+  }
+
+  if ((topic.deletedAt != null || topic.hidden) && !canSeeDeleted(authInfo)) {
+    return false
+  }
+
+  return true
 }
 
 export async function ensureCanAccessForum(c: Context, forumId: number): Promise<AuthInfo | null> {
