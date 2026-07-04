@@ -1,7 +1,8 @@
 import { basename } from 'node:path'
 import { renderToString, type SSRContext } from 'vue/server-renderer'
 import { createHead } from '@unhead/vue/server'
-import { type VueHeadClient } from '@unhead/vue'
+import { type SSRHeadPayload } from '@unhead/vue/server'
+import { type UseHeadInput, type VueHeadClient } from '@unhead/vue'
 import { createYcForumsApp } from '@/app.ts'
 import { Api, apiKey } from '@/util/Api.ts'
 import { useLocaleStore } from '@/stores/localization.ts'
@@ -17,7 +18,7 @@ export async function render(
 ): Promise<{
   html: string
   preloadLinks: string
-  head: VueHeadClient
+  head: VueHeadClient<UseHeadInput, SSRHeadPayload>
   piniaState: string
   queryClientState: string
 }> {

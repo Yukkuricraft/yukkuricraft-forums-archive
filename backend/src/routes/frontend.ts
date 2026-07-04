@@ -5,7 +5,7 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { transformHtmlTemplate } from 'unhead/server'
-import { type Unhead } from 'unhead/types'
+import { type SSRHeadPayload, type Unhead } from 'unhead/types'
 import AppError from '../AppError.js'
 import { languageDetector } from 'hono/language'
 
@@ -23,7 +23,13 @@ type Render = (
   requestsBase: string,
   locales: string | string[] | undefined,
   cookieHeader: string | null,
-) => Promise<{ html: string; preloadLinks: string; head: Unhead<any>; piniaState: string; queryClientState: string }>
+) => Promise<{
+  html: string
+  preloadLinks: string
+  head: Unhead<any, SSRHeadPayload>
+  piniaState: string
+  queryClientState: string
+}>
 
 function fileCwd() {
   const cwd = process.cwd()

@@ -1,4 +1,4 @@
-import { createSSRApp } from 'vue'
+import { createSSRApp, type Component } from 'vue'
 import { createPinia } from 'pinia'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -14,7 +14,7 @@ export function createYcForumsApp(api: Api) {
   const router = createYcForumsRouter(api)
   const pinia = createPinia()
 
-  app.component('FontAwesomeIcon', FontAwesomeIcon)
+  app.component('FontAwesomeIcon', FontAwesomeIcon as Component)
 
   const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } })
 

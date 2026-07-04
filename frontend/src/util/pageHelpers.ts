@@ -51,7 +51,7 @@ export function makeMeta({
     })
 
     link.push({
-      rel: 'canonical',
+      rel: 'canonical' as const,
       href: fullUrl,
     })
   }

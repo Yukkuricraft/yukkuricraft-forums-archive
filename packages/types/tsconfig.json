@@ -1,7 +1,8 @@
 {
   "extends": ["@yukkuricraft-forums-archive/ts-config/node.tsconfig.json"],
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "rootDir": "./src"
   },
   "include": ["src"],
   "exclude": ["node_modules", "./dist"]

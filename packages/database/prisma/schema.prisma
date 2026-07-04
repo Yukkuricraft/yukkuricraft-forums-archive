@@ -8,6 +8,7 @@ generator client {
   output          = "../generated/prisma"
   moduleFormat    = "esm"
   engineType      = "client"
+  compilerBuild   = "fast"
 }
 
 generator kysely {

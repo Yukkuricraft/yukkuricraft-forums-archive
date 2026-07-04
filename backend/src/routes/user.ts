@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import { PrismaClient } from '@yukkuricraft-forums-archive/database'
-import contentDisposition from 'content-disposition'
+import { create as createContentDisposition } from 'content-disposition'
 import * as mime from 'mime-types'
 import AppError from '../AppError.js'
 import { userInclude } from '@yukkuricraft-forums-archive/types/user'
@@ -132,7 +132,7 @@ const app = new Hono()
 
       return c.body(user.Avatar.data, 200, {
         'content-type': mime.contentType(user.Avatar.filename) || 'application/octet-stream',
-        'content-disposition': contentDisposition(user.Avatar.filename, { type: 'inline' }),
+        'content-disposition': createContentDisposition(user.Avatar.filename, { type: 'inline' }),
       })
     },
   )
@@ -163,7 +163,7 @@ const app = new Hono()
 
       return c.body(user.Avatar.thumbnailData, 200, {
         'content-type': mime.contentType(user.Avatar.filename) || 'application/octet-stream',
-        'content-disposition': contentDisposition(user.Avatar.filename, { type: 'inline' }),
+        'content-disposition': createContentDisposition(user.Avatar.filename, { type: 'inline' }),
       })
     },
   )
