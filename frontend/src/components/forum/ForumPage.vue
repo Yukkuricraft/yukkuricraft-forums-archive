@@ -14,8 +14,7 @@
               <option value="dateStartedPost">Creation date</option>
               <option value="replies">Replies</option>
               <option value="title">Title</option>
-              <option v-if="false" value="members">Members</option>
-              <!-- TODO: Show when we implement this -->
+              <option value="members">Members</option>
             </select>
           </div>
         </div>

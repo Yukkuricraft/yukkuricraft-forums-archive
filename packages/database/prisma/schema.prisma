@@ -108,16 +108,17 @@ model Forum {
 }
 
 model Topic {
-  id        Int       @id
-  forumId   Int       @map("forum_id")
-  creatorId Int?      @map("creator_id")
-  createdAt DateTime  @map("created_at")
-  slug      String
-  title     String
-  sticky    Boolean
-  deletedAt DateTime? @map("deleted_at")
-  hidden    Boolean
-  postCount Int       @map("post_count")
+  id          Int       @id
+  forumId     Int       @map("forum_id")
+  creatorId   Int?      @map("creator_id")
+  createdAt   DateTime  @map("created_at")
+  slug        String
+  title       String
+  sticky      Boolean
+  deletedAt   DateTime? @map("deleted_at")
+  hidden      Boolean
+  postCount   Int       @map("post_count")
+  memberCount Int       @map("member_count")
 
   Forum   Forum @relation(fields: [forumId], references: [id])
   Creator User? @relation(fields: [creatorId], references: [id])

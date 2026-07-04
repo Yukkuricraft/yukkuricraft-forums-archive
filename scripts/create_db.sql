@@ -192,22 +192,23 @@ FROM t
 
 CREATE TABLE topic
 (
-    id         INT PRIMARY KEY,
-    forum_id   INT         NOT NULL REFERENCES forum,
-    creator_id INT REFERENCES "user",
-    created_at TIMESTAMPTZ NOT NULL,
-    slug       TEXT        NOT NULL,
-    title      TEXT        NOT NULL,
-    sticky     BOOLEAN     NOT NULL,
-    deleted_at TIMESTAMPTZ,
-    hidden     BOOLEAN     NOT NULL,
-    post_count INT         NOT NULL,
-    ts_vector  TSVECTOR    NOT NULL
+    id           INT PRIMARY KEY,
+    forum_id     INT         NOT NULL REFERENCES forum,
+    creator_id   INT REFERENCES "user",
+    created_at   TIMESTAMPTZ NOT NULL,
+    slug         TEXT        NOT NULL,
+    title        TEXT        NOT NULL,
+    sticky       BOOLEAN     NOT NULL,
+    deleted_at   TIMESTAMPTZ,
+    hidden       BOOLEAN     NOT NULL,
+    post_count   INT         NOT NULL,
+    member_count INT         NOT NULL,
+    ts_vector    TSVECTOR    NOT NULL
 );
 
 CREATE INDEX topics_forum_id_slug_idx ON topic (forum_id, slug);
 
-INSERT INTO topic (id, forum_id, creator_id, created_at, slug, title, sticky, deleted_at, hidden, post_count, ts_vector)
+INSERT INTO topic (id, forum_id, creator_id, created_at, slug, title, sticky, deleted_at, hidden, post_count, member_count, ts_vector)
 SELECT n.nodeid,
        n.parentid,
        u.userid,
@@ -217,6 +218,7 @@ SELECT n.nodeid,
        n.sticky,
        TO_TIMESTAMP(NULLIF(n.unpublishdate, 0)),
        n.approved = FALSE OR n.showapproved = FALSE,
+       0,
        0,
        TO_TSVECTOR('english', n.title)
 FROM yc_forum_archive.node n
@@ -393,7 +395,10 @@ SELECT s.smilieid, s.title, s.smilietext, s.smiliepath
 FROM yc_forum_archive.smilie s;
 
 UPDATE topic t
-SET post_count = (SELECT COUNT(*) FROM post p WHERE p.topic_id = t.id AND NOT p.hidden AND p.deleted_at IS NULL)
+SET post_count   = (SELECT COUNT(*) FROM post p WHERE p.topic_id = t.id AND NOT p.hidden AND p.deleted_at IS NULL),
+    member_count = (SELECT COUNT(DISTINCT p.creator_id)
+                    FROM post p
+                    WHERE p.topic_id = t.id AND NOT p.hidden AND p.deleted_at IS NULL)
 WHERE TRUE;
 
 WITH RECURSIVE parents(id, parent_id) AS (SELECT f.id, f.parent_id

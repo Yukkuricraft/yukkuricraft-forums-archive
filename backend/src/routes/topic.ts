@@ -6,19 +6,18 @@ import z from 'zod'
 import { topicIncludeRequest, makeOutTopic } from '@yukkuricraft-forums-archive/types/topic'
 import { type AuthInfo, canSeeDeleted, ensureCanAccessForum, ensureCanAccessTopic } from './auth.js'
 
+type TopicSortBy = 'dateLastUpdate' | 'dateStartedPost' | 'replies' | 'title' | 'members'
+
 function deletedTopicFilter(authInfo: AuthInfo | null): Prisma.TopicWhereInput {
   return canSeeDeleted(authInfo) ? {} : { deletedAt: null, hidden: false }
 }
 
-export function topicOrder(
-  sortBy: 'dateLastUpdate' | 'dateStartedPost' | 'replies' | 'title' | 'members',
-  order: 'asc' | 'desc',
-) {
-  // TODO: Handle members sortBy
+export function topicOrder(sortBy: TopicSortBy, order: 'asc' | 'desc') {
   return {
     createdAt: sortBy === 'dateStartedPost' ? order : undefined,
     title: sortBy === 'title' ? order : undefined,
     postCount: sortBy === 'replies' ? order : undefined,
+    memberCount: sortBy === 'members' ? order : undefined,
     LastPost:
       sortBy === 'dateLastUpdate'
         ? {

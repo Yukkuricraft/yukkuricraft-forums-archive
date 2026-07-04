@@ -18,7 +18,3 @@
 
 - Topic redirects
 - Topic tags
-
-# Nice to have
-
-- Implement members sorting
