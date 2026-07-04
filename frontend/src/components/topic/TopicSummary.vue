@@ -30,7 +30,15 @@
               }"
               @click="topicStore.selectTopic(topic)"
             >
-              <h2 class="h4">{{ topic.title === '' ? 'Title' : decodeHtmlEntities(topic.title) }}</h2>
+              <h2 class="h4">
+                <FontAwesomeIcon
+                  v-if="hasPoll"
+                  :icon="faSquarePollVertical"
+                  class="poll-icon"
+                  title="This topic has a poll"
+                />
+                {{ topic.title === '' ? 'Title' : decodeHtmlEntities(topic.title) }}
+              </h2>
             </router-link>
             <div class="byline">
               <p>
@@ -94,7 +102,7 @@ import { useUser } from '@/composables/apiComposables.ts'
 import type { ForumRoute } from '@/util/RouteTypes.ts'
 import UserLink from '@/components/UserLink.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrashCan, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faEyeSlash, faSquarePollVertical } from '@fortawesome/free-solid-svg-icons'
 
 const topicStore = useTopicsStore()
 const localeStore = useLocaleStore()
@@ -103,6 +111,7 @@ const props = defineProps<{ topic: Topic; routeParams: ForumRoute }>()
 
 const isDeleted = computed(() => Boolean(props.topic.deletedAt))
 const isHidden = computed(() => props.topic.hidden && !isDeleted.value)
+const hasPoll = computed(() => Boolean(props.topic.poll))
 
 const { data: creator, suspense: creatorSuspense } = await useUser(computed(() => props.topic.creatorId))
 const { data: lastPostUser, suspense: lastPostUserSuspense } = await useUser(
@@ -114,3 +123,12 @@ onServerPrefetch(async () => {
   await lastPostUserSuspense()
 })
 </script>
+
+<style scoped lang="scss">
+.poll-icon {
+  margin-right: 0.4em;
+  color: var(--bulma-link);
+  font-size: 0.85em;
+  vertical-align: baseline;
+}
+</style>

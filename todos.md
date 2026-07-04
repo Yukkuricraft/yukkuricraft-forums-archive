@@ -18,8 +18,7 @@
 # Topics
 
 - Topic redirects
-- Special icon for poll topics
 
 # Nice to have
 
-* Add a wide screen option (together with the sidebar toggle). Switches out container for container-fluid
+* Add a wide screen option (together with the sidebar toggle). Makes the container wider
