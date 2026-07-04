@@ -41,7 +41,10 @@ export function useTopic(topicId: Ref<number | string>, existingData?: Ref<Topic
   return useQuery({
     queryKey: ['api', 'topics', topicId],
     queryFn: ({ signal }) => api.get<Topic>(`/api/topics/${topicId.value}`, undefined, signal),
-    initialData: () => existingData?.value ?? undefined,
+    initialData: () => {
+      const existing = existingData?.value
+      return existing && String(existing.id) === String(topicId.value) ? existing : undefined
+    },
   })
 }
 
