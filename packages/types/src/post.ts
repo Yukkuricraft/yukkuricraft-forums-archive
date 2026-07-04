@@ -1,4 +1,5 @@
 import type { DB } from '@yukkuricraft-forums-archive/database/kysely'
+import type { PostEditHistory } from '@yukkuricraft-forums-archive/database'
 import { type Kysely, sql, type SelectQueryBuilder, type Simplify } from 'kysely'
 
 function getPostsBaseQuery(kysely: Kysely<DB>, topicId: number, q: string, includeDeleted: boolean) {
@@ -108,3 +109,4 @@ type SelectResult<A extends SelectQueryBuilder<any, any, any>> =
   A extends SelectQueryBuilder<any, any, infer O> ? Simplify<O> : never
 
 export type Post = SelectResult<ReturnType<typeof getPostsQuery>>
+export type PostEdit = PostEditHistory

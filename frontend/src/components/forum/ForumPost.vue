@@ -61,6 +61,9 @@
               {{ localeStore.formatDate(post.postEditCreatedAt) }}.
               <span v-if="post.postEditReason">Reason: {{ post.postEditReason }}</span>
             </i>
+            <div v-if="canSeeEditHistory" class="mt-1">
+              <PostEditHistory :topic-id="post.topicId" :post-id="post.id" />
+            </div>
           </template>
           <template v-if="settingsStore.showSignatures && creator?.signature">
             <hr />
@@ -82,9 +85,10 @@ import ForumPoll from '@/components/forum/ForumPoll.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'
+import PostEditHistory from '@/components/forum/PostEditHistory.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { useSettingsStore } from '@/stores/settings.ts'
-import { useUser } from '@/composables/apiComposables.ts'
+import { useActiveUser, useUser } from '@/composables/apiComposables.ts'
 import type { TopicRoute } from '@/util/RouteTypes.ts'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrashCan, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
@@ -101,6 +105,9 @@ const props = defineProps<{
     pageStr?: string
   }
 }>()
+
+const { data: activeUser } = useActiveUser()
+const canSeeEditHistory = computed(() => Boolean(activeUser.value?.isStaff || activeUser.value?.isAdmin))
 
 const isDeleted = computed(() => Boolean(props.post.deletedAt))
 const isHidden = computed(() => props.post.hidden && !isDeleted.value)

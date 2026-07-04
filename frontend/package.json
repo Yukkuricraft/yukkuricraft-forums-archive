@@ -62,6 +62,7 @@
     "@vueuse/router": "^14.3.0",
     "bulma": "^1.0.4",
     "dataloader": "^2.2.3",
+    "diff": "^9.0.0",
     "he": "^1.2.0",
     "markdown-it": "^14.3.0",
     "pinia": "^3.0.4",

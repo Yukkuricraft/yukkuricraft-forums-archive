@@ -4,7 +4,7 @@ import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { computed, inject, type InjectionKey, type MaybeRef, type Ref } from 'vue'
 import type { TopicsOrderingRequestParams, TopicsRequestParams } from '@/stores/topics.ts'
 import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
-import type { Post } from '@yukkuricraft-forums-archive/types/post'
+import type { Post, PostEdit } from '@yukkuricraft-forums-archive/types/post'
 import DataLoader from 'dataloader'
 import type { User } from '@yukkuricraft-forums-archive/types/user'
 import type { RouteLocationRaw } from 'vue-router'
@@ -82,6 +82,20 @@ export function usePostPage(topicId: Ref<number | string>, postId: Ref<number | 
     queryFn: ({ signal }) =>
       api.get<{ page: number }>(`/api/topics/${topicId.value}/posts/${postId.value}/page`, { pageSize }, signal),
     enabled: () => postId.value != null,
+  })
+}
+
+export function usePostEditHistory(
+  topicId: Ref<number | string>,
+  postId: Ref<number | string>,
+  enabled: () => boolean,
+) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', 'topics', topicId, 'posts', postId, 'editHistory'],
+    queryFn: ({ signal }) =>
+      api.get<PostEdit[]>(`/api/topics/${topicId.value}/posts/${postId.value}/editHistory`, undefined, signal),
+    enabled,
   })
 }
 

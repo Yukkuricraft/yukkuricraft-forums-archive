@@ -236,6 +236,10 @@ export function canSeeDeleted(authInfo: AuthInfo | null): boolean {
   return Boolean(authInfo?.isStaff || authInfo?.isAdmin)
 }
 
+export function canSeeEditHistory(authInfo: AuthInfo | null): boolean {
+  return Boolean(authInfo?.isStaff || authInfo?.isAdmin)
+}
+
 /**
  * Whether the given viewer is allowed to see this topic at all. Mirrors the checks in
  * {@link ensureCanAccessTopic} (forum permissions, PM membership, deleted/hidden), but returns
