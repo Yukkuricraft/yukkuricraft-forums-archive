@@ -19,7 +19,11 @@ export default (rootDir, ts = true) => [
     languageOptions: {
       ecmaVersion: 'latest',
       parserOptions: {
-        projectService: ts,
+        projectService: ts
+          ? {
+              allowDefaultProject: ['*.config.js', '*.config.mjs', '*.config.ts'],
+            }
+          : false,
         tsconfigRootDir: rootDir,
       },
     },

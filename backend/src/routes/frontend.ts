@@ -26,6 +26,9 @@ type Render = (
 ) => Promise<{
   html: string
   preloadLinks: string
+  // Loosely typed to match the dynamically imported frontend render output (VueHeadClient) and
+  // unhead's own transformHtmlTemplate signature, which likewise uses Unhead<any, SSRHeadPayload>.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   head: Unhead<any, SSRHeadPayload>
   piniaState: string
   queryClientState: string
@@ -47,6 +50,7 @@ const [template, render, fixStacktrace] = await (async () => {
 
     app.use('assets/*', serveStatic({ root: assetsRoot }))
 
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- path is resolved from a bundled package at build time, not user input
     const template = await fs.readFile(templatePath, 'utf-8')
 
     const render: Render = (await import('@yukkuricraft-forums-archive/frontend/distserver/entry-server.js')).render
@@ -79,7 +83,8 @@ const [template, render, fixStacktrace] = await (async () => {
       appType: 'custom',
     })
 
-    let template = (await fs.readFile(path.resolve(viteRoot, 'index.html'), 'utf-8')).replace(
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- viteRoot is resolved from a bundled package at build time, not user input
+    const template = (await fs.readFile(path.resolve(viteRoot, 'index.html'), 'utf-8')).replace(
       '/src/entry-client.ts',
       '/@fs/' + path.resolve(viteRoot, './src/entry-client.ts'),
     )
@@ -88,27 +93,27 @@ const [template, render, fixStacktrace] = await (async () => {
       // A bit hacky, but generally seems to work most of the time
       await new Promise<void>((resolve, reject) => {
         try {
-          vite.middlewares(c.env.incoming, c.env.outgoing, async (err: any) => {
+          vite.middlewares(c.env.incoming, c.env.outgoing, (err: unknown) => {
             if (err) {
-              return reject(err)
+              return reject(err instanceof Error ? err : new Error('Vite middleware error', { cause: err }))
             } else {
               return resolve()
             }
           })
         } catch (e) {
-          reject(e)
+          reject(e instanceof Error ? e : new Error('Vite middleware error', { cause: e }))
         }
       })
       await next()
     })
 
-    const render: Render = (await vite.ssrLoadModule(path.resolve(viteRoot, './src/entry-server.js'))).render
+    const render = (await vite.ssrLoadModule(path.resolve(viteRoot, './src/entry-server.js'))).render as Render
 
     return [
       async (url: string) => await vite.transformIndexHtml(url, template),
       async (url: string, port: number, locales: string | string[] | undefined, cookieHeader: string | null) =>
         await render(url, {}, `http://localhost:${port}/`, locales, cookieHeader),
-      (e: any) => vite.ssrFixStacktrace(e),
+      (e: unknown) => vite.ssrFixStacktrace(e as Error),
     ] as const
   }
 })()
@@ -137,7 +142,7 @@ async function handle(c: Context) {
       .replace('<!--app-html-->', rendered.html ?? '')
       .replace('<!--state-script-->', stateScript ?? '')
 
-    const templateWithHead = await transformHtmlTemplate(rendered.head, reqTemplate)
+    const templateWithHead = transformHtmlTemplate(rendered.head, reqTemplate)
 
     return c.html(templateWithHead, 200)
   } catch (e) {

@@ -9,7 +9,7 @@
         <div class="field">
           <label class="label is-sr-only">Search</label>
           <div class="control">
-            <input class="input" type="text" placeholder="Search..." v-model="search" />
+            <input v-model="search" class="input" type="text" placeholder="Search..." />
           </div>
         </div>
       </div>

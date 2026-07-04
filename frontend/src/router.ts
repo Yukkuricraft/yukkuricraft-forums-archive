@@ -7,8 +7,6 @@ import SearchPage from '@/pages/SearchPage.vue'
 import AboutPage from '@/pages/AboutPage.vue'
 import type { ForumRoute, TopicRoute } from '@/util/RouteTypes.ts'
 import ForumOrSectionPage from '@/pages/ForumOrSectionPage.vue'
-import { Api, NotFoundError, useApi } from '@/util/Api.ts'
-import type { User } from '@yukkuricraft-forums-archive/types/user'
 import PrivateMessagesPage from '@/pages/PrivateMessagesPage.vue'
 
 function first(str: string | string[]): string {
@@ -19,8 +17,9 @@ function arr(str: string | string[]): string[] {
   return Array.isArray(str) ? str : [str]
 }
 
-export function createYcForumsRouter(api: Api) {
+export function createYcForumsRouter() {
   return createRouter({
+    // eslint-disable-next-line turbo/no-undeclared-env-vars -- import.meta.env.SSR is a Vite built-in, not an env var
     history: import.meta.env.SSR ? createMemoryHistory('/') : createWebHistory('/'),
     routes: [
       {

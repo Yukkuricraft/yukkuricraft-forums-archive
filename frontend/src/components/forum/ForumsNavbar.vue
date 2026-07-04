@@ -81,15 +81,15 @@
 
             <div class="navbar-dropdown">
               <router-link
-                class="navbar-item"
                 v-if="activeUser.user"
+                class="navbar-item"
                 :to="{ name: 'user', params: { userId: activeUser.user.id, userName: activeUser.user.name } }"
               >
                 Me
               </router-link>
-              <router-link class="navbar-item" v-if="activeUser.user" :to="{ name: 'private-messages' }"
-                >Private messages</router-link
-              >
+              <router-link v-if="activeUser.user" class="navbar-item" :to="{ name: 'private-messages' }">
+                Private messages
+              </router-link>
               <a class="navbar-item" href="/signout">Sign out</a>
             </div>
           </div>

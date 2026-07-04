@@ -24,7 +24,7 @@ const app = new Hono()
       c.status(400)
       return c.text('Bad request')
     }
-    const k = obj![0]![0]
+    const k = obj[0][0]
     const id = parseInt(k, 10) //We intentionally ignore the rest of the string here
     if (Number.isNaN(id)) {
       c.status(400)

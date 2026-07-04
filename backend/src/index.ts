@@ -7,11 +7,11 @@ import type { DB } from '@yukkuricraft-forums-archive/database/kysely'
 
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
-import { logger as honoLogger } from 'hono/logger'
+//import { logger as honoLogger } from 'hono/logger'
 import { compress } from 'hono/compress'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
-import { timeout } from 'hono/timeout'
+//import { timeout } from 'hono/timeout'
 import { createMiddleware } from 'hono/factory'
 
 import { rootLogger } from './loggers.js'
@@ -67,7 +67,7 @@ const app = new Hono()
   .use(compress())
   .use(requestId())
   .use(secureHeaders({ strictTransportSecurity: false }))
-  //.use(timeout(30_000))
+//.use(timeout(30_000))
 
 app.route('/api', forumRoutes)
 app.route('/api', topicRoutes)

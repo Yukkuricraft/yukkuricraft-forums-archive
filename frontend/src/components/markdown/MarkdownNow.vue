@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable-next-line vue/no-v-html -- markdown-it output; raw HTML in the source is escaped (html: false by default) -->
   <div v-html="htmlContent"></div>
 </template>
 

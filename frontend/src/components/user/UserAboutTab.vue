@@ -3,11 +3,7 @@
     <section>
       <h2 class="profile-bar is-size-5 has-text-weight-bold mb-3">Basic Information</h2>
       <h3 class="has-text-weight-bold mb-2">About {{ user.name }}</h3>
-      <MarkdownLazy
-        v-if="user.biography"
-        class="content mb-3"
-        :content="user.biography.replaceAll('\r\n', '\n')"
-      />
+      <MarkdownLazy v-if="user.biography" class="content mb-3" :content="user.biography.replaceAll('\r\n', '\n')" />
       <dl v-if="aboutFields.length" class="profile-fields mb-2">
         <template v-for="field in aboutFields" :key="field.label">
           <dt class="has-text-weight-semibold">{{ field.label }}:</dt>

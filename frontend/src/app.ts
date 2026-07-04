@@ -7,13 +7,13 @@ import './scss/app.scss'
 import App from './App.vue'
 import { createYcForumsRouter } from './router'
 import { QueryCache, QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
-import { ForbiddenError, type Api } from '@/util/Api.ts'
+import { ForbiddenError } from '@/util/Api.ts'
 import { useAppErrorStore } from '@/stores/appError.ts'
 import { START_LOCATION } from 'vue-router'
 
-export function createYcForumsApp(api: Api) {
+export function createYcForumsApp() {
   const app = createSSRApp(App)
-  const router = createYcForumsRouter(api)
+  const router = createYcForumsRouter()
   const pinia = createPinia()
 
   app.component('FontAwesomeIcon', FontAwesomeIcon as Component)

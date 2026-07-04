@@ -1,8 +1,6 @@
 <template>
   <div class="box" style="margin-bottom: 0">
-    <h2 v-if="postsCount" class="title is-4">
-      {{ localeStore.formatNumber(postsCount.posts) }} Visitor Messages
-    </h2>
+    <h2 v-if="postsCount" class="title is-4">{{ localeStore.formatNumber(postsCount.posts) }} Visitor Messages</h2>
     <template v-if="posts && posts.length">
       <VisitorMessage v-for="post in posts" :key="'vm-' + post.id" :post="post" />
       <AutoPagination

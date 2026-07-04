@@ -1,12 +1,12 @@
 <template>
   <AdvancedSearch
     v-if="advSearch"
-    :searchJson="searchJson"
-    @update:searchJson="(value) => (searchJson = value)"
+    :search-json="searchJson"
     :q="q"
+    @update:search-json="(value) => (searchJson = value)"
   />
   <hr />
-  <SearchResult :q="q" :searchJson="searchJson" />
+  <SearchResult :q="q" :search-json="searchJson" />
 </template>
 
 <script setup lang="ts">
@@ -33,7 +33,7 @@ const zOrd = z.enum(['desc', 'asc']).optional()
 const zJson = z.string().transform((s, ctx) => {
   try {
     return JSON.parse(s)
-  } catch (e) {
+  } catch {
     ctx.addIssue({
       code: 'invalid_type',
       message: 'Not valid JSON',

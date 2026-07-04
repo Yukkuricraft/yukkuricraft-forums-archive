@@ -38,7 +38,7 @@ const app = new Hono()
 
     let i = 0
     for (const u of usersWithAvatars) {
-      if (i % 10 == 0) {
+      if (i % 10 === 0) {
         logger.info(`Dumped ${i * 2}/${usersWithAvatars.length * 2} avatars`)
       }
 

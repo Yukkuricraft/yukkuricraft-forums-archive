@@ -221,7 +221,7 @@ export const customPreset = vuePreset.extend((defTags) => ({
     if (Array.isArray(reference) && reference.length === 1) {
       reference = reference[0]
     }
-    let spanRes = {
+    const spanRes = {
       ...node,
       attrs: {},
       tag: 'span',
@@ -564,7 +564,7 @@ export const mergeStringsPlugin: () => BBobPluginFunction = () => {
 
   const walkArr = (tree: NodeContent[]): NodeContent[] | NodeContent => {
     let currentString = ''
-    let result: NodeContent[] = []
+    const result: NodeContent[] = []
 
     let elem
     while ((elem = tree.shift())) {

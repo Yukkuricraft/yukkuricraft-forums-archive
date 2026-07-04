@@ -24,7 +24,7 @@ export async function render(
   queryClientState: string
 }> {
   const api = new Api(requestsBase, cookieHeader ? { cookie: cookieHeader } : undefined)
-  const { app, router, pinia, queryClient } = createYcForumsApp(api)
+  const { app, router, pinia, queryClient } = createYcForumsApp()
   const head = createHead()
   app.use(head)
   app.provide(apiKey, api)

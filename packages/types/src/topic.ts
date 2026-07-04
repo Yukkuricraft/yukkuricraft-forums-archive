@@ -100,7 +100,10 @@ function makeOutPoll(pollPost: PollPost | undefined, includeVoters: boolean) {
   }
 }
 
-export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>, includeVoters: boolean) {
+export function makeOutTopic(
+  row: Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>,
+  includeVoters: boolean,
+) {
   const oldTopic = row
   const newTopic = row.RedirectTo?.RedirectTo
 

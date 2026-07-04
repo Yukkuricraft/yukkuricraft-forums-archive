@@ -20,7 +20,12 @@
       </div>
 
       <div v-if="canSeeVoters && option.voters" class="mt-2">
-        <button type="button" class="button is-ghost is-small px-0" :aria-expanded="expanded.has(option.id)" @click="toggle(option.id)">
+        <button
+          type="button"
+          class="button is-ghost is-small px-0"
+          :aria-expanded="expanded.has(option.id)"
+          @click="toggle(option.id)"
+        >
           <span class="icon is-small">
             <FontAwesomeIcon :icon="expanded.has(option.id) ? faCaretDown : faCaretRight" />
           </span>

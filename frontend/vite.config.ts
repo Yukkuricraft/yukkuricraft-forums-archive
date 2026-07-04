@@ -1,10 +1,9 @@
 import { fileURLToPath, URL } from 'node:url'
-import path from 'node:path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-// @ts-expect-error
+// @ts-expect-error no type declarations shipped for vite-plugin-favicons-inject
 import vitePluginFaviconsInject from 'vite-plugin-favicons-inject'
 // import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -39,11 +38,28 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+      },
+    },
+  },
   build: {
     outDir: './dist',
     target: 'es2022',
     assetsInlineLimit: 1024,
+    // The vendor chunk (Vue, vue-query, FontAwesome, …) is knowingly above the 500 kB default.
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        // Suppress unfixable noise from dependencies, e.g. @vueuse/core's misplaced
+        // /* #__PURE__ */ annotations that Rolldown can't interpret.
+        if (warning.code === 'INVALID_ANNOTATION' && /node_modules/.test(warning.message ?? '')) {
+          return
+        }
+        defaultHandler(warning)
+      },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
