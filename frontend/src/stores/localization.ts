@@ -41,9 +41,9 @@ export const useLocaleStore = defineStore('locale', () => {
     }
 
     if (date instanceof Date) {
-      return dateFormat.value.format(date)
+      return monthYearFormat.value.format(date)
     } else {
-      return dateFormat.value.format(new Date(date))
+      return monthYearFormat.value.format(new Date(date))
     }
   }
 

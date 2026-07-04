@@ -28,7 +28,7 @@
                 {{ creator?.title ?? creator?.UserGroup?.userTitle }}
               </span>
             </p>
-            <p>
+            <p class="is-size-6">
               Join Date: {{ localeStore.formatMonthYear(creator?.createdAt) }}
               <br />
               Posts: {{ creator?.postCount }}
