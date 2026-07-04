@@ -121,9 +121,10 @@ async function handle(c: Context) {
   }
 
   try {
-    console.log('Rendering: ' + c.req.path)
+    const renderUrl = c.req.path + new URL(c.req.url).search
+    console.log('Rendering: ' + renderUrl)
 
-    const rendered = await render(c.req.path, port, c.get('language'), cookieHeader)
+    const rendered = await render(renderUrl, port, c.get('language'), cookieHeader)
     const baseTemplate = await template(c.req.path)
 
     const stateScript = `<script id="pinia-state">
