@@ -23,6 +23,12 @@ export class NotFoundError extends ResponseCodeError {
   }
 }
 
+export class ForbiddenError extends ResponseCodeError {
+  constructor(message: string, body: string) {
+    super(message, 403, body)
+  }
+}
+
 export class Api {
   readonly #base: string
   readonly #headers?: Record<string, string>
@@ -55,6 +61,10 @@ export class Api {
 
     if (res.status === 404) {
       throw new NotFoundError(`Did not find object at ${usedUrl}`, await res.text())
+    }
+
+    if (res.status === 403) {
+      throw new ForbiddenError(`Not allowed to access object at ${usedUrl}`, await res.text())
     }
 
     if (!res.ok) {

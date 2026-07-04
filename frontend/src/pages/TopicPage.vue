@@ -35,6 +35,7 @@ import { NotFoundError } from '@/util/Api.ts'
 import useUnknownObject, { usePostPage, usePosts, usePostsCount, useTopic } from '@/composables/apiComposables.ts'
 import { refDebounced } from '@vueuse/core'
 import type { TopicRoute } from '@/util/RouteTypes.ts'
+import { useAppErrorStore } from '@/stores/appError.ts'
 
 const props = defineProps<{
   routeParams: TopicRoute
@@ -80,19 +81,25 @@ const {
   computed(() => topicStore.currentTopic),
 )
 
+const appErrorStore = useAppErrorStore()
+
 onServerPrefetch(async () => {
   await Promise.all([suspensePosts(), suspenseTopic(), suspensePostsCount()])
+  // A missing/deleted/inaccessible topic comes back as a 404. Resolve where (if anywhere)
+  // it should redirect before rendering, so SSR can show the not-found page directly.
+  if (topicFailureReason.value instanceof NotFoundError) {
+    await unknownObjectSuspense()
+    if (!unknownObjectRoute.value) {
+      appErrorStore.setStatus(404)
+    }
+  }
 })
 
-watch(
-  currentTopic,
-  (t) => {
-    if (t) {
-      topicStore.currentTopic = t
-    }
-  },
-  { immediate: true },
-)
+watchEffect(() => {
+  if (currentTopic.value) {
+    topicStore.currentTopic = currentTopic.value
+  }
+})
 
 const actualTopicRoute = computed<RouteLocationRaw | null>(() => {
   if (!topicIsStale && currentTopic.value && currentTopic.value.slug !== props.routeParams.topic) {
@@ -110,10 +117,14 @@ const actualTopicRoute = computed<RouteLocationRaw | null>(() => {
   return null
 })
 
-const actualRoute = useUnknownObject(
+const {
+  route: unknownObjectRoute,
+  isSettled: unknownObjectSettled,
+  suspense: unknownObjectSuspense,
+} = useUnknownObject(
   computed(() => props.topicId),
   topicFailureReason,
-  () => topicFailureReason.value !== null && topicFailureReason.value instanceof NotFoundError,
+  () => topicFailureReason.value instanceof NotFoundError,
 )
 
 const router = useRouter()
@@ -129,8 +140,12 @@ watch(
 )
 
 watchEffect(async () => {
-  if (actualRoute.value) {
-    await router.replace(actualRoute.value)
+  const unknownRoute = unknownObjectRoute.value
+
+  if (unknownRoute) {
+    await router.replace(unknownRoute)
+  } else if (topicFailureReason.value instanceof NotFoundError && unknownObjectSettled.value) {
+    appErrorStore.setStatus(404)
   }
 })
 

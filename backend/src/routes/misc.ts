@@ -2,7 +2,23 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
 import { PrismaClient } from '@yukkuricraft-forums-archive/database'
-import AppError from '../AppError.js'
+import { canAccessForum, canAccessTopicRecord, canSeeDeleted, getAuthInfo } from './auth.js'
+
+const topicVisibilitySelect = {
+  id: true,
+  slug: true,
+  deletedAt: true,
+  hidden: true,
+  creatorId: true,
+  Forum: {
+    select: {
+      requiresAdmin: true,
+      requiresStaff: true,
+      FullSlug: { select: { slug: true } },
+    },
+  },
+  TopicPrivateMessage: { select: { sentTo: true } },
+} as const
 
 const app = new Hono().get(
   'unknownObject/:id',
@@ -10,9 +26,12 @@ const app = new Hono().get(
   async (c) => {
     const { id } = c.req.valid('param')
     const prisma: PrismaClient = c.get('prisma')
+    const authInfo = await getAuthInfo(c)
 
     const forumQuery = prisma.forum.findUnique({
       select: {
+        requiresAdmin: true,
+        requiresStaff: true,
         FullSlug: {
           select: {
             slug: true,
@@ -24,19 +43,7 @@ const app = new Hono().get(
       },
     })
     const topicQuery = prisma.topic.findUnique({
-      select: {
-        id: true,
-        slug: true,
-        Forum: {
-          select: {
-            FullSlug: {
-              select: {
-                slug: true,
-              },
-            },
-          },
-        },
-      },
+      select: topicVisibilitySelect,
       where: {
         id,
       },
@@ -44,20 +51,10 @@ const app = new Hono().get(
     const postQuery = prisma.post.findUnique({
       select: {
         id: true,
+        deletedAt: true,
+        hidden: true,
         Topic: {
-          select: {
-            id: true,
-            slug: true,
-            Forum: {
-              select: {
-                FullSlug: {
-                  select: {
-                    slug: true,
-                  },
-                },
-              },
-            },
-          },
+          select: topicVisibilitySelect,
         },
         PostIdx: {
           select: {
@@ -71,21 +68,22 @@ const app = new Hono().get(
     })
 
     const [forumRes, topicRes, postRes] = await Promise.all([forumQuery, topicQuery, postQuery])
-    if (!forumRes && !topicRes && !postRes) {
-      return c.json({ errror: 'not found' }, 404)
+
+    if (forumRes && canAccessForum(authInfo, forumRes)) {
+      return c.json({ forum: { forumSlug: forumRes.FullSlug?.slug } })
     }
 
-    if (forumRes) {
-      return c.json({ forum: { forumSlug: forumRes?.FullSlug?.slug } })
-    }
-
-    if (topicRes) {
+    if (topicRes && canAccessTopicRecord(authInfo, topicRes)) {
       return c.json({
         topic: { forumSlug: topicRes.Forum.FullSlug?.slug, topicSlug: topicRes.slug, topicId: topicRes.id },
       })
     }
 
-    if (postRes) {
+    const postVisible =
+      postRes &&
+      canAccessTopicRecord(authInfo, postRes.Topic) &&
+      ((postRes.deletedAt == null && !postRes.hidden) || canSeeDeleted(authInfo))
+    if (postVisible) {
       return c.json({
         post: {
           forumSlug: postRes.Topic.Forum.FullSlug?.slug,
@@ -97,7 +95,7 @@ const app = new Hono().get(
       })
     }
 
-    throw new AppError('Not possible', false)
+    return c.json({ error: 'not found' }, 404)
   },
 )
 

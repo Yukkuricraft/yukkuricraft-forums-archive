@@ -13,15 +13,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onServerPrefetch, ref } from 'vue'
+import { computed, onServerPrefetch, ref, watch } from 'vue'
 import { pageCount, pageFromPath } from '@/util/pathUtils.ts'
-import { NotFoundError, useApi } from '@/util/Api.ts'
-import { useQuery } from '@tanstack/vue-query'
-import type { User } from '@yukkuricraft-forums-archive/types/user'
 import { useRouter } from 'vue-router'
 import Pagination from '@/components/AutoPagination.vue'
 import TopicSummary from '@/components/topic/TopicSummary.vue'
-import { usePrivateMessages, usePrivateMessagesCount } from '@/composables/apiComposables.ts'
+import { useActiveUser, usePrivateMessages, usePrivateMessagesCount } from '@/composables/apiComposables.ts'
 import type { TopicsOrderingRequestParams } from '@/stores/topics.ts'
 
 const props = defineProps<{
@@ -39,31 +36,16 @@ const routeParams = { forumPath: ['special', 'private-messages'] }
 const sortBy = ref<TopicsOrderingRequestParams['sortBy']>('dateLastUpdate')
 const order = ref<TopicsOrderingRequestParams['order']>('desc')
 
-const api = useApi()
 const router = useRouter()
-const { suspense: activeUserSuspense } = useQuery({
-  queryKey: ['api', '@me'],
-  queryFn: async ({ signal }) => {
-    try {
-      const user = await api.get<{ discordName: string; user: User | undefined; isAdmin: boolean; isStaff: boolean }>(
-        '/api/@me',
-        undefined,
-        signal,
-      )
-      if (!user.user) {
-        await router.push('/')
-        return null
-      }
-    } catch (e) {
-      if (e instanceof NotFoundError) {
-        await router.push('/')
-        return null
-      } else {
-        throw e
-      }
-    }
-  },
-})
+const { data: activeUser, suspense: activeUserSuspense } = useActiveUser()
+
+function redirectIfNotAllowed() {
+  if (activeUser.value !== undefined && !activeUser.value?.user) {
+    return router.push('/')
+  }
+}
+
+watch(activeUser, redirectIfNotAllowed, { immediate: true })
 
 const { data: topics, suspense: privateMessagesSuspense } = usePrivateMessages(
   computed(() => ({ page: page.value, sortBy: sortBy.value, order: order.value })),
@@ -71,5 +53,9 @@ const { data: topics, suspense: privateMessagesSuspense } = usePrivateMessages(
 
 const { data: privateMessagesCount, suspense: privateMessagesCountSuspense } = usePrivateMessagesCount()
 
-onServerPrefetch(() => Promise.all([activeUserSuspense(), privateMessagesSuspense(), privateMessagesCountSuspense()]))
+onServerPrefetch(async () => {
+  await activeUserSuspense()
+  await redirectIfNotAllowed()
+  await Promise.all([privateMessagesSuspense(), privateMessagesCountSuspense()])
+})
 </script>

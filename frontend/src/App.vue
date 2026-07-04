@@ -8,7 +8,8 @@
         <router-view v-slot="{ Component }">
           <template v-if="Component">
             <Suspense>
-              <component :is="Component" />
+              <ErrorState v-if="appErrorStore.status" :status="appErrorStore.status" />
+              <component :is="Component" v-else />
 
               <template #fallback>
                 <div style="text-align: center; margin-top: 20vh; margin-bottom: 20vh">
@@ -34,8 +35,11 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import YcBreadcrumbs from '@/components/YcBreadcrumbs.vue'
 import { useSettingsStore } from '@/stores/settings.ts'
+import ErrorState from '@/components/ErrorState.vue'
+import { useAppErrorStore } from '@/stores/appError.ts'
 
 const route = useRoute()
+const appErrorStore = useAppErrorStore()
 
 // Apply persisted viewer preferences only after hydration to avoid an SSR mismatch
 const settingsStore = useSettingsStore()

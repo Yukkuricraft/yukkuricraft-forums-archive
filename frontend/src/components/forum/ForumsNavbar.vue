@@ -98,9 +98,7 @@
 <script setup lang="ts">
 import { onServerPrefetch, ref } from 'vue'
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useQuery } from '@tanstack/vue-query'
-import { NotFoundError, useApi } from '@/util/Api.ts'
-import type { User } from '@yukkuricraft-forums-archive/types/user'
+import { useActiveUser } from '@/composables/apiComposables.ts'
 import { useSettingsStore } from '@/stores/settings.ts'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faGear } from '@fortawesome/free-solid-svg-icons'
@@ -110,29 +108,7 @@ const searchInput = ref('')
 
 const settingsStore = useSettingsStore()
 
-const api = useApi()
-const {
-  data: activeUser,
-  isLoading: activeUserLoading,
-  suspense: activeUserSuspense,
-} = useQuery({
-  queryKey: ['api', '@me'],
-  queryFn: async ({ signal }) => {
-    try {
-      return await api.get<{ discordName: string; user: User | undefined; isAdmin: boolean; isStaff: boolean }>(
-        '/api/@me',
-        undefined,
-        signal,
-      )
-    } catch (e) {
-      if (e instanceof NotFoundError) {
-        return null
-      } else {
-        throw e
-      }
-    }
-  },
-})
+const { data: activeUser, isLoading: activeUserLoading, suspense: activeUserSuspense } = useActiveUser()
 
 onServerPrefetch(activeUserSuspense)
 </script>

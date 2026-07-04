@@ -8,6 +8,7 @@ import { Api, apiKey } from '@/util/Api.ts'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { dehydrate } from '@tanstack/vue-query'
 import { makeUsersLoader, userLoaderInjectKey } from '@/composables/apiComposables.ts'
+import { useAppErrorStore } from '@/stores/appError.ts'
 
 export async function render(
   url: string,
@@ -36,7 +37,16 @@ export async function render(
   await router.isReady()
 
   const ctx: SSRContext = {}
-  const html = await renderToString(app, ctx)
+  let html = await renderToString(app, ctx)
+
+  // Access errors (a 403 from a query for example) are only discovered mid-render, after App.vue
+  // has already rendered. Re-render once the error store is populated so the centralized
+  // <ErrorState> boundary in App.vue is reflected in the output. The second pass reuses the
+  // resolved data/setup (setup and onServerPrefetch do not run again), so it doesn't refetch.
+  const appErrorStore = useAppErrorStore(pinia)
+  if (appErrorStore.status !== null) {
+    html = await renderToString(app, ctx)
+  }
 
   const dehydratedState = dehydrate(queryClient)
 

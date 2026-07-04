@@ -1,6 +1,6 @@
 # Required or near required
 
-1. Test permissions, handle 403s in frontend
+1. Test permissions (manual browser testing)
 2. Fix suspense and related while loading, spinners potentially?
 3. Non-forum forums and topics
 4. Test dockerization

@@ -25,7 +25,7 @@ const props = defineProps<{
   referencedPost?: string | null
 }>()
 
-const postReferenceRoute = useUnknownObject(
+const { route: postReferenceRoute } = useUnknownObject(
   computed(() => props.referencedPost),
   '',
 )

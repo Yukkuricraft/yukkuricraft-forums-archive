@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { Api, useApi } from '@/util/Api.ts'
+import { Api, NotFoundError, useApi } from '@/util/Api.ts'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { computed, inject, type InjectionKey, type MaybeRef, type Ref } from 'vue'
 import type { TopicsOrderingRequestParams, TopicsRequestParams } from '@/stores/topics.ts'
@@ -99,6 +99,31 @@ export function useVisitorMessagesCount(userId: Ref<number | string>) {
   })
 }
 
+export interface ActiveUser {
+  discordName: string
+  user: User | undefined
+  isAdmin: boolean
+  isStaff: boolean
+}
+
+export function useActiveUser() {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', '@me'],
+    queryFn: async ({ signal }) => {
+      try {
+        return await api.get<ActiveUser>('/api/@me', undefined, signal)
+      } catch (e) {
+        if (e instanceof NotFoundError) {
+          return null
+        } else {
+          throw e
+        }
+      }
+    },
+  })
+}
+
 export function usePrivateMessages(params: Ref<TopicsRequestParams>) {
   const api = useApi()
   return useQuery({
@@ -163,7 +188,11 @@ function useUnknownObject(
   enabled: () => boolean = () => true,
 ) {
   const api = useApi()
-  const { data: unknownObject } = useQuery({
+  const {
+    data: unknownObject,
+    isFetched,
+    suspense,
+  } = useQuery({
     queryKey: ['api', 'unknownObject', id, extraKey],
     queryFn: ({ signal }) => {
       return api.get<
@@ -175,66 +204,48 @@ function useUnknownObject(
     enabled: () => id.value !== null && id.value !== undefined && enabled(),
   })
 
-  return computed<RouteLocationRaw | null>(() => {
+  const route = computed<RouteLocationRaw | null>(() => {
     const res = unknownObject.value
-    if (res) {
-      if ('forum' in res) {
-        const parts = [...res.forum.forumSlug]
-        if (parts[0] === 'forum') {
-          parts.shift()
-        } else {
-          // TODO
-        }
+    if (!res) {
+      return null
+    }
 
-        return {
-          name: 'forum',
-          params: { sectionSlug: parts[0], forumPath: parts.slice(1) },
-        }
-      } else if ('topic' in res) {
-        const parts = [...res.topic.forumSlug]
-        if (parts[0] === 'forum') {
-          parts.shift()
-        } else {
-          // TODO
-        }
-
-        return {
-          name: 'topic',
-          params: {
-            sectionSlug: parts[0],
-            forumPath: parts.slice(1),
-            topic: res.topic.topicSlug,
-            topicId: res.topic.topicId,
-          },
-        }
-      } else {
-        // else post
-        const parts = [...res.post.forumSlug]
-        if (parts[0] === 'forum') {
-          parts.shift()
-        } else {
-          // TODO
-        }
-        const pageSize = 10 // Should be the default
-
-        const page = pageCount(res.post.postIdx, pageSize)
-
-        return {
-          name: 'topic',
-          params: {
-            sectionSlug: parts[0],
-            forumPath: parts.slice(1),
-            topicId: res.post.topicId,
-            topic: res.post.topicSlug,
-            pageStr: `page${page}`,
-          },
-          hash: `#post${res.post.postId}`,
-        }
+    if ('forum' in res) {
+      return {
+        name: 'forum',
+        params: { forumPath: res.forum.forumSlug },
       }
     }
 
-    return null
+    if ('topic' in res) {
+      return {
+        name: 'posts',
+        params: {
+          forumPath: res.topic.forumSlug,
+          topic: res.topic.topicSlug,
+          topicId: res.topic.topicId,
+        },
+      }
+    }
+
+    // else post
+    const page = pageCount(res.post.postIdx, 10)
+    return {
+      name: 'posts',
+      params: {
+        forumPath: res.post.forumSlug,
+        topicId: res.post.topicId,
+        topic: res.post.topicSlug,
+        pageStr: page === 1 ? undefined : `page${page}`,
+      },
+      hash: `#post${res.post.postId}`,
+    }
   })
+
+  // When `enabled()` is false there is nothing to look up, so treat that as "settled".
+  const isSettled = computed(() => !enabled() || isFetched.value)
+
+  return { route, isSettled, suspense }
 }
 
 export default useUnknownObject
