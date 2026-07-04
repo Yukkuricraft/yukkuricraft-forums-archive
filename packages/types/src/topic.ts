@@ -47,9 +47,60 @@ export const topicIncludeRequest = {
       },
     },
   },
+  Posts: {
+    where: { PostPoll: { isNot: null } },
+    select: {
+      id: true,
+      PostPoll: {
+        select: {
+          multiple: true,
+          Options: {
+            orderBy: { id: 'asc' },
+            select: {
+              id: true,
+              title: true,
+              Votes: {
+                select: {
+                  userId: true,
+                  User: { select: { id: true, name: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 } as const satisfies Prisma.TopicInclude
 
-export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>) {
+type PollPost = Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>['Posts'][number]
+
+function makeOutPoll(pollPost: PollPost | undefined, includeVoters: boolean) {
+  const postPoll = pollPost?.PostPoll
+  if (!pollPost || !postPoll) {
+    return null
+  }
+
+  const options = postPoll.Options.map((opt) => ({
+    id: opt.id,
+    title: opt.title,
+    voteCount: opt.Votes.length,
+    voters: includeVoters ? opt.Votes.map((v) => ({ id: v.User.id, name: v.User.name })) : undefined,
+  }))
+
+  const totalVotes = options.reduce((sum, opt) => sum + opt.voteCount, 0)
+  const totalVoters = new Set(postPoll.Options.flatMap((opt) => opt.Votes.map((v) => v.userId))).size
+
+  return {
+    postId: pollPost.id,
+    multiple: postPoll.multiple,
+    totalVotes,
+    totalVoters,
+    options,
+  }
+}
+
+export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topicIncludeRequest }>, includeVoters: boolean) {
   const oldTopic = row
   const newTopic = row.RedirectTo?.RedirectTo
 
@@ -70,6 +121,8 @@ export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topic
     id: tt.Tag.id,
     text: tt.Tag.text,
   }))
+
+  const poll = makeOutPoll(oldTopic.Posts[0], includeVoters)
 
   let redirectTo
   if (newTopic) {
@@ -103,6 +156,7 @@ export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topic
     lastPostSummary,
     recipients,
     tags,
+    poll,
   }
 }
 

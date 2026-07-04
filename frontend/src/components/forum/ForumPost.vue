@@ -54,6 +54,7 @@
           </div>
 
           <ForumPostContent :content="post.content" />
+          <ForumPoll v-if="poll" :poll="poll" />
           <template v-if="post.postEditCreatedAt || post.postEditCreatorId || post.postEditReason">
             <i
               >Last edited by <UserLink :user="lastEditUser ?? null"></UserLink>;
@@ -75,7 +76,9 @@
 
 <script setup lang="ts">
 import type { Post } from '@yukkuricraft-forums-archive/types/post'
+import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
 import ForumPostContent from '@/components/forum/ForumPostContent.vue'
+import ForumPoll from '@/components/forum/ForumPoll.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'
@@ -91,6 +94,7 @@ const settingsStore = useSettingsStore()
 
 const props = defineProps<{
   post: Post
+  poll?: NonNullable<Topic['poll']>
   pageProps?: {
     routeParams: TopicRoute
     topicId: string

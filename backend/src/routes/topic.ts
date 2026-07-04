@@ -74,7 +74,7 @@ const app = new Hono()
         return await make404(c, prisma, parentId)
       }
 
-      const result = res.map((row) => makeOutTopic(row))
+      const result = res.map((row) => makeOutTopic(row, canSeeDeleted(authInfo)))
       return c.json(result)
     },
   )
@@ -109,7 +109,7 @@ const app = new Hono()
         return await make404(c, prisma, parentId)
       }
 
-      const result = res.map((row) => makeOutTopic(row))
+      const result = res.map((row) => makeOutTopic(row, canSeeDeleted(authInfo)))
       return c.json(result)
     },
   )
@@ -119,7 +119,7 @@ const app = new Hono()
     async (c) => {
       const { topicId } = c.req.valid('param')
       const prisma: PrismaClient = c.get('prisma')
-      await ensureCanAccessTopic(c, topicId)
+      const authInfo = await ensureCanAccessTopic(c, topicId)
 
       const res = await prisma.topic.findUnique({
         relationLoadStrategy: 'join',
@@ -133,7 +133,7 @@ const app = new Hono()
         return c.json({ error: 'not found' }, 404)
       }
 
-      const result = makeOutTopic(res)
+      const result = makeOutTopic(res, canSeeDeleted(authInfo))
       return c.json(result)
     },
   )

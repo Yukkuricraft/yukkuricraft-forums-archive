@@ -15,7 +15,13 @@
       </div>
     </div>
 
-    <ForumPost v-for="post in posts" :key="'post-' + post.id" :post="post" :page-props="props" />
+    <ForumPost
+      v-for="post in posts"
+      :key="'post-' + post.id"
+      :post="post"
+      :poll="currentTopic?.poll && currentTopic.poll.postId === post.id ? currentTopic.poll : undefined"
+      :page-props="props"
+    />
 
     <Pagination
       v-if="postsCount"

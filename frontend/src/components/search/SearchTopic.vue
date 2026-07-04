@@ -39,6 +39,7 @@ const convertedTopic = computed<Topic>(() => {
     },
     recipients: [],
     tags: [],
+    poll: null,
   } satisfies Topic
 })
 </script>
