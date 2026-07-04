@@ -54,9 +54,6 @@ CREATE TABLE "user"
     signature     TEXT,
     avatar        INT REFERENCES avatar,
 
-    is_staff BOOLEAN NOT NULL,
-    is_admin BOOLEAN NOT NULL,
-
     --Profile fields
     biography     TEXT,
     location      TEXT,
@@ -83,7 +80,7 @@ FROM yc_forum_archive.customavatar ca;
 -- The data here is fauly, and will need to be dumped from the live server
 
 INSERT INTO "user" (id, user_group_id, slug, name, email, title, title_color, title_opacity, created_at, post_count,
-                    signature, avatar, is_staff, is_admin,
+                    signature, avatar,
                     biography, location, interests, occupation, in_game_name)
 SELECT u.userid,
        u.usergroupid,
@@ -105,8 +102,6 @@ SELECT u.userid,
        u.posts,
        ut.signature,
        ua.id,
-       FALSE,
-       FALSE,
        uf.field1,
        uf.field2,
        uf.field3,

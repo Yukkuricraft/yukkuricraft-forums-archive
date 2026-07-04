@@ -5,7 +5,6 @@
 3. Non-forum forums and topics
 4. Test dockerization
 5. User page
-6. Set permissions of staff users in the DB
 
 # Search for TODO and fix (Only if it's bad)
 

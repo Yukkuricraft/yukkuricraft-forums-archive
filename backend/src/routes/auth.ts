@@ -6,7 +6,7 @@ import { Discord, generateState, UnexpectedResponseError } from 'arctic'
 import { zValidator } from '@hono/zod-validator'
 import AppError from '../AppError.js'
 import type { PrismaClient } from '@yukkuricraft-forums-archive/database'
-import discordIdMappings from './discordIdMappings.js'
+import { discordIdToUserId, discordIdAdmins, discordIdStaff } from './discordIdMappings.js'
 import { getSignedCookie, setSignedCookie, deleteCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 import { makeOutTopic, topicIncludeRequest } from '@yukkuricraft-forums-archive/types/topic'
@@ -66,13 +66,11 @@ app
         global_name?: string
         username: string
       }
-      const mapping = discordIdMappings[discordUser.id]
+      const mapping = discordIdToUserId[discordUser.id]
       const user = await prisma.user.findFirst({
         select: {
           id: true,
           name: true,
-          isStaff: true,
-          isAdmin: true,
         },
         where:
           mapping && !isNaN(mapping)
@@ -89,14 +87,15 @@ app
           discordName: discordUser.global_name ?? discordUser.username,
           userId: user?.id ?? null,
           userName: user?.name ?? '',
-          isStaff: user?.isStaff ?? false,
-          isAdmin: user?.isAdmin ?? false,
+          isStaff: discordIdStaff.includes(discordUser.id),
+          isAdmin: discordIdAdmins.includes(discordUser.id),
         } satisfies AuthInfo),
         getenv('COOKIE_SECRET'),
         {
           secure: true,
           httpOnly: true,
-          sameSite: 'strict',
+          sameSite: 'Lax',
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
         },
       )
 

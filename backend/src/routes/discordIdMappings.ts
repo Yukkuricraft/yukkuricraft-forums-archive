@@ -1,19 +1,41 @@
-export default {
-  '71481644896235520': 1, // Remi
-  '109755047914573824': 353, // Katrix
-  '783460072328134656': 744, // Teshno
-  '201939654239322113': 835, // Koko
-  '97035222385700864': 787, // Luna
+const remi = '71481644896235520'
+const katrix = '109755047914573824'
+const teshno = '783460072328134656'
+const koko = '201939654239322113'
+const luna = '97035222385700864'
 
-  '325735962997161985': NaN, // Mori
-  '206892131590078464': 1133, // birb
-  '175932306282774528': NaN, // Sei
-  '164176051294044161': NaN, // Alorai
+const mori = '325735962997161985'
+const birb = '206892131590078464'
+const sei = '175932306282774528'
+const alorai = '164176051294044161'
 
-  '217449039447195649': 686, // qsc
-  '147909571430711296': 1029, // Eiburine
-  '100784570697277440': 958, // Nick,
-  '206892489833971712': 894, // Nucklearblt
-  '193195158898999316': 212, // Redleaf
-  '206905958838960128': 1134, // Purp
+const qsc = '217449039447195649'
+const eiburine = '147909571430711296'
+const nick = '100784570697277440'
+const nucklearblt = '206892489833971712'
+const redleaf = '193195158898999316'
+const purp = '206905958838960128'
+
+export const discordIdAdmins = [remi, katrix, teshno, koko, luna]
+
+export const discordIdStaff = [mori, birb, sei, alorai, qsc, eiburine, nick, nucklearblt, redleaf, purp]
+
+export const discordIdToUserId = {
+  [remi]: 1,
+  [katrix]: 353,
+  [teshno]: 744,
+  [koko]: 835,
+  [luna]: 787,
+
+  [mori]: NaN,
+  [birb]: 1133,
+  [sei]: NaN,
+  [alorai]: NaN,
+
+  [qsc]: 686,
+  [eiburine]: 1029,
+  [nick]: 958,
+  [nucklearblt]: 894,
+  [redleaf]: 212,
+  [purp]: 1134,
 } as Record<string, number>

@@ -61,9 +61,6 @@ model User {
   signature    String?
   avatarId     Int?      @map("avatar")
 
-  isAdmin Boolean @map("is_admin")
-  isStaff Boolean @map("is_staff")
-
   //Profile fields
   biography  String?
   location   String?
