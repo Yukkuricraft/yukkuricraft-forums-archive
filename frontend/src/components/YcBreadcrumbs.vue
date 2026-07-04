@@ -60,6 +60,31 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     return res
   }
 
+  if ((path[0] === '@me' || path[0] === 'special') && path[1] === 'private-messages') {
+    res.push({
+      text: 'Private Messages',
+      to: { name: 'private-messages' },
+      key: 'home/private-messages',
+    })
+
+    const topicSlug = path[2]
+    if (topicSlug && /^\d+/gm.test(topicSlug)) {
+      res.push({
+        text: topicStore.currentTopic?.title ?? topicSlug,
+        to: {
+          name: 'posts',
+          params: {
+            forumPath: ['special', 'private-messages'],
+            topic: topicStore.currentTopic?.slug,
+            topicId: topicStore.currentTopic?.id,
+          },
+        },
+        key: `home/private-messages/${topicSlug}`,
+      })
+    }
+    return res
+  }
+
   const forumPath = []
   let forums = rootForums.value
   let forumSlug: string | undefined
