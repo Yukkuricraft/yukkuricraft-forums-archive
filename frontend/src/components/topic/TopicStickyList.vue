@@ -1,15 +1,20 @@
 <template>
-  <h2 v-if="stickyTopics?.length" class="title is-4 mt-3">Sticky topics</h2>
-  <TopicSummary
-    v-for="topic in stickyTopics"
-    :key="'stickytopic-' + topic.title"
-    :topic="topic"
-    :route-params="routeParams"
-  />
+  <template v-if="stickyTopics?.length">
+    <h2 class="title is-4 mt-3">Sticky topics</h2>
+    <LoadingOverlay :active="isFetching">
+      <TopicSummary
+        v-for="topic in stickyTopics"
+        :key="'stickytopic-' + topic.title"
+        :topic="topic"
+        :route-params="routeParams"
+      />
+    </LoadingOverlay>
+  </template>
 </template>
 
 <script setup lang="ts">
 import TopicSummary from '@/components/topic/TopicSummary.vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import type { ForumTree } from '@yukkuricraft-forums-archive/types/forum'
 import { useStickyTopics } from '@/composables/apiComposables.ts'
 import { computed, onServerPrefetch } from 'vue'
@@ -23,7 +28,11 @@ const props = defineProps<{
   order: TopicsOrderingRequestParams['order']
 }>()
 
-const { data: stickyTopics, suspense } = useStickyTopics(
+const {
+  data: stickyTopics,
+  suspense,
+  isFetching,
+} = useStickyTopics(
   computed(() => props.forum.id),
   computed(() => ({ sortBy: props.sortBy, order: props.order })),
 )

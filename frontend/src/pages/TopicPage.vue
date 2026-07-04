@@ -15,27 +15,32 @@
       </div>
     </div>
 
-    <ForumPost
-      v-for="post in posts"
-      :key="'post-' + post.id"
-      :post="post"
-      :poll="currentTopic?.poll && currentTopic.poll.postId === post.id ? currentTopic.poll : undefined"
-      :page-props="props"
-    />
+    <LoadingOverlay :active="postsFetching">
+      <ForumPost
+        v-for="post in posts"
+        :key="'post-' + post.id"
+        :post="post"
+        :poll="currentTopic?.poll && currentTopic.poll.postId === post.id ? currentTopic.poll : undefined"
+        :page-props="props"
+      />
 
-    <Pagination
-      v-if="postsCount"
-      :current-page="page"
-      :page-count="Math.ceil(postsCount.posts / 10)"
-      :link-gen="pageLinkGen"
-      :shown-pages="9"
-    />
+      <p v-if="posts && posts.length === 0" class="has-text-grey py-4">No posts match your search.</p>
+
+      <Pagination
+        v-if="postsCount"
+        :current-page="page"
+        :page-count="Math.ceil(postsCount.posts / 10)"
+        :link-gen="pageLinkGen"
+        :shown-pages="9"
+      />
+    </LoadingOverlay>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onServerPrefetch, ref, watch, watchEffect } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import TopicTags from '@/components/topic/TopicTags.vue'
 import { pageFromPath } from '../util/pathUtils.ts'
 import ForumPost from '@/components/forum/ForumPost.vue'
@@ -73,7 +78,11 @@ const pageLinkGen = computed(
 
 const topicStore = useTopicsStore()
 
-const { data: posts, suspense: suspensePosts } = usePosts(
+const {
+  data: posts,
+  suspense: suspensePosts,
+  isFetching: postsFetching,
+} = usePosts(
   computed(() => props.topicId),
   computed(() => ({ page: page.value, pageSize: 10, q: debouncedSearch.value })),
 )

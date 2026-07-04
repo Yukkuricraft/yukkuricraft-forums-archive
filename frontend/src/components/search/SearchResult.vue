@@ -1,19 +1,24 @@
 <template>
   <h1 id="resultsTop" class="title is-1">Search result</h1>
 
-  <template v-if="searchResults?.type === 'post'">
-    <SearchPost v-for="post in searchResults.results" :key="post.id" :post="post" />
-  </template>
-  <template v-else>
-    <SearchTopic v-for="topic in searchResults?.results" :key="topic.id" :topic="topic"></SearchTopic>
-  </template>
+  <LoadingSpinner v-if="isPending" label="Searching…" />
+  <LoadingOverlay v-else :active="isFetching">
+    <template v-if="searchResults?.type === 'post'">
+      <SearchPost v-for="post in searchResults.results" :key="post.id" :post="post" />
+    </template>
+    <template v-else>
+      <SearchTopic v-for="topic in searchResults?.results" :key="topic.id" :topic="topic"></SearchTopic>
+    </template>
 
-  <AutoPagination
-    :current-page="p"
-    :page-count="pageCount(searchResults?.total ?? 0, 10)"
-    :navigate-to-page="(v) => (p = v)"
-    :shown-pages="7"
-  />
+    <p v-if="searchResults && searchResults.results.length === 0" class="has-text-grey">No results found.</p>
+
+    <AutoPagination
+      :current-page="p"
+      :page-count="pageCount(searchResults?.total ?? 0, 10)"
+      :navigate-to-page="(v) => (p = v)"
+      :shown-pages="7"
+    />
+  </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
@@ -23,10 +28,12 @@ import { refDebounced } from '@vueuse/core'
 import SearchPost from '@/components/search/SearchPost.vue'
 import AutoPagination from '@/components/AutoPagination.vue'
 import SearchTopic from '@/components/search/SearchTopic.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 import { pageCount } from '@/util/pathUtils.ts'
 import { type PostSearchResult, type TopicSearchResult, useApi } from '@/util/Api.ts'
-import { useQuery } from '@tanstack/vue-query'
+import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 
 const props = defineProps<{
   searchJson: SearchJsonObj
@@ -65,7 +72,11 @@ const processedSearchJsonDebounced = refDebounced(processedSearchJson, 500)
 
 const api = useApi()
 
-const { data: searchResults } = useQuery({
+const {
+  data: searchResults,
+  isPending,
+  isFetching,
+} = useQuery({
   queryKey: ['api', 'search', processedSearchJsonDebounced, computed(() => props.q), p],
   queryFn: ({ signal }) =>
     api.get<PostSearchResult | TopicSearchResult>(
@@ -77,6 +88,7 @@ const { data: searchResults } = useQuery({
       },
       signal,
     ),
+  placeholderData: keepPreviousData,
 })
 
 watch(searchResults, () => {

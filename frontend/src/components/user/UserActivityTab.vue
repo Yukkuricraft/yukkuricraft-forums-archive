@@ -1,15 +1,18 @@
 <template>
   <div class="box">
-    <template v-if="activity && activity.results.length">
-      <SearchPost v-for="post in activity.results" :key="'activity-' + post.id" :post="post" />
-      <AutoPagination
-        :current-page="page"
-        :page-count="pageCount(activity.total, 10)"
-        :navigate-to-page="(p) => (page = p)"
-        :shown-pages="9"
-      />
-    </template>
-    <p v-else>No activity to show.</p>
+    <LoadingSpinner v-if="isPending" />
+    <LoadingOverlay v-else :active="isFetching">
+      <template v-if="activity && activity.results.length">
+        <SearchPost v-for="post in activity.results" :key="'activity-' + post.id" :post="post" />
+        <AutoPagination
+          :current-page="page"
+          :page-count="pageCount(activity.total, 10)"
+          :navigate-to-page="(p) => (page = p)"
+          :shown-pages="9"
+        />
+      </template>
+      <p v-else>No activity to show.</p>
+    </LoadingOverlay>
   </div>
 </template>
 
@@ -17,6 +20,8 @@
 import { onServerPrefetch, ref, toRef } from 'vue'
 import SearchPost from '@/components/search/SearchPost.vue'
 import AutoPagination from '@/components/AutoPagination.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { useUserActivity } from '@/composables/apiComposables.ts'
 import { pageCount } from '@/util/pathUtils.ts'
 
@@ -25,7 +30,7 @@ const props = defineProps<{
 }>()
 
 const page = ref(1)
-const { data: activity, suspense } = useUserActivity(toRef(props, 'userName'), page)
+const { data: activity, suspense, isPending, isFetching } = useUserActivity(toRef(props, 'userName'), page)
 
 onServerPrefetch(suspense)
 </script>

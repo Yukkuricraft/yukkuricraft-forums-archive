@@ -16,7 +16,7 @@
             <button type="button" class="delete" aria-label="close" @click="open = false"></button>
           </header>
           <section class="modal-card-body">
-            <p v-if="isLoading" class="has-text-grey">Loading edit history…</p>
+            <LoadingSpinner v-if="isLoading" label="Loading edit history…" size="lg" />
             <p v-else-if="isError" class="has-text-danger">Failed to load edit history.</p>
             <p v-else-if="versions.length === 0" class="has-text-grey">No edit history is available for this post.</p>
 
@@ -62,9 +62,7 @@
 
               <p v-if="toVersion" class="is-size-7 has-text-grey mb-2">
                 <template v-if="toVersion.original">Original post</template>
-                <template v-else>
-                  Edited by <UserLink :user="authorFor(toVersion)" />
-                </template>
+                <template v-else> Edited by <UserLink :user="authorFor(toVersion)" /> </template>
                 on {{ localeStore.formatDate(toVersion.createdAt) }}.
                 <span v-if="toVersion.reason">Reason: {{ toVersion.reason }}</span>
               </p>
@@ -88,6 +86,7 @@ import { computed, ref, watchEffect } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faClockRotateLeft } from '@fortawesome/free-solid-svg-icons'
 import UserLink from '@/components/UserLink.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { usePostEditHistory, useUsers } from '@/composables/apiComposables.ts'
 import { useLocaleStore } from '@/stores/localization.ts'
 import { diffWordsWithSpace } from 'diff'
