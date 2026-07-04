@@ -49,6 +49,8 @@
             </div>
           </div>
 
+          <TopicTags :tags="topic.tags" />
+
           <small>Responses: {{ localeStore.formatNumber(topic.postCount - 1) }}</small>
         </div>
 
@@ -83,6 +85,7 @@
 <script setup lang="ts">
 import type { Topic } from '@yukkuricraft-forums-archive/types/topic'
 import UserAvatar from '@/components/UserAvatar.vue'
+import TopicTags from '@/components/topic/TopicTags.vue'
 import { computed, onServerPrefetch } from 'vue'
 import { decodeHtmlEntities } from '@/util/htmlEntities.ts'
 import { useTopicsStore } from '@/stores/topics.ts'

@@ -22,6 +22,21 @@ export const topicIncludeRequest = {
     },
   },
   LastPost: lastPostInclude,
+  TopicTags: {
+    select: {
+      Tag: {
+        select: {
+          id: true,
+          text: true,
+        },
+      },
+    },
+    orderBy: {
+      Tag: {
+        text: 'asc',
+      },
+    },
+  },
   TopicPrivateMessage: {
     select: {
       User: {
@@ -49,6 +64,11 @@ export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topic
   const recipients = oldTopic.TopicPrivateMessage.map((pm) => ({
     id: pm.User.id,
     name: pm.User.name,
+  }))
+
+  const tags = oldTopic.TopicTags.map((tt) => ({
+    id: tt.Tag.id,
+    text: tt.Tag.text,
   }))
 
   let redirectTo
@@ -82,6 +102,7 @@ export function makeOutTopic(row: Prisma.TopicGetPayload<{ include: typeof topic
     redirectTo,
     lastPostSummary,
     recipients,
+    tags,
   }
 }
 

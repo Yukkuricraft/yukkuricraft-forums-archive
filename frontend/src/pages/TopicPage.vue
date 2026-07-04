@@ -1,7 +1,10 @@
 <template>
   <div>
     <div class="is-flex is-justify-content-space-between is-align-items-start">
-      <h1 v-if="currentTopic" class="title is-2">{{ currentTopic.title }}</h1>
+      <div>
+        <h1 v-if="currentTopic" class="title is-2">{{ currentTopic.title }}</h1>
+        <TopicTags v-if="currentTopic" :tags="currentTopic.tags" />
+      </div>
       <div>
         <div class="field">
           <label class="label is-sr-only">Search</label>
@@ -27,6 +30,7 @@
 <script setup lang="ts">
 import { computed, onServerPrefetch, ref, watch, watchEffect } from 'vue'
 import Pagination from '../components/AutoPagination.vue'
+import TopicTags from '@/components/topic/TopicTags.vue'
 import { pageFromPath } from '../util/pathUtils.ts'
 import ForumPost from '@/components/forum/ForumPost.vue'
 import { useTopicsStore } from '@/stores/topics.ts'

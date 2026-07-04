@@ -38,6 +38,7 @@ const convertedTopic = computed<Topic>(() => {
       userId: t.lastPost.creatorId,
     },
     recipients: [],
+    tags: [],
   } satisfies Topic
 })
 </script>

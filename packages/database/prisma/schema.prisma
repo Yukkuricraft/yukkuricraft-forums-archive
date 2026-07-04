@@ -144,15 +144,20 @@ model TopicRedirect {
 model Tag {
   id   Int    @id
   text String
+
+  TopicTags TopicTag[]
+
+  @@map("tag")
 }
 
 model TopicTag {
   topicId   Int      @map("topic_id")
   tagId     Int      @map("tag_id")
-  creatorId Int?
-  createdAt DateTime
+  creatorId Int?     @map("creator_id")
+  createdAt DateTime @map("created_at")
 
   Topic   Topic @relation(fields: [topicId], references: [id])
+  Tag     Tag   @relation(fields: [tagId], references: [id])
   Creator User? @relation(fields: [creatorId], references: [id])
 
   @@id([topicId, tagId])

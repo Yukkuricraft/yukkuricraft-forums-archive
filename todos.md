@@ -16,4 +16,3 @@
 # Topics
 
 - Topic redirects
-- Topic tags
