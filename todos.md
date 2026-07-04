@@ -12,7 +12,6 @@
 # Posts
 
 - Post edit history, diffing
-- Post link
 - Post polls
 
 # Topics

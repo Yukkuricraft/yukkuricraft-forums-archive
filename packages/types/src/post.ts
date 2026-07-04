@@ -53,6 +53,20 @@ export function getPostsQuery(
     .offset(offset)
 }
 
+export function getPostCountBeforeQuery(kysely: Kysely<DB>, topicId: number, postId: number, includeDeleted: boolean) {
+  let query = kysely
+    .selectFrom('post as p')
+    .leftJoin('postIdx as i', 'p.id', 'i.id')
+    .where('p.topicId', '=', topicId)
+    .where('p.id', '<=', postId)
+
+  if (!includeDeleted) {
+    query = query.where('i.id', 'is not', null)
+  }
+
+  return query.select(kysely.fn.countAll<bigint>().as('count'))
+}
+
 function getUserVisitorMessagesBaseQuery(kysely: Kysely<DB>, userId: number) {
   return kysely
     .selectFrom('postVisitorMessage as pvm')

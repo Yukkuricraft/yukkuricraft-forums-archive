@@ -1,5 +1,5 @@
 <template>
-  <div class="card" :class="{ 'is-deleted': isDeleted, 'is-hidden': isHidden }">
+  <div :id="`post${post.id}`" class="card" :class="{ 'is-deleted': isDeleted, 'is-hidden': isHidden }">
     <div class="card-content">
       <div v-if="isDeleted" class="state-notice is-deleted">
         <FontAwesomeIcon :icon="faTrashCan" />

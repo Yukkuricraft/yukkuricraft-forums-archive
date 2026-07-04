@@ -14,14 +14,6 @@ html {
   min-height: 100%;
 }
 
-*[id]:before {
-  display: block;
-  content: ' ';
-  margin-top: -52px;
-  height: 52px;
-  visibility: hidden;
-}
-
 .byline {
   color: hsl(0, 0%, 60%);
   font-size: 0.9rem;

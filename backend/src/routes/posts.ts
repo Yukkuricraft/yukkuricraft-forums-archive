@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import z from 'zod'
-import { getPostsCountQuery, getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
+import { getPostCountBeforeQuery, getPostsCountQuery, getPostsQuery } from '@yukkuricraft-forums-archive/types/post'
 import { canSeeDeleted, ensureCanAccessTopic } from './auth.js'
 
 const app = new Hono()
@@ -62,6 +62,37 @@ const app = new Hono()
 
       const res = await getPostsCountQuery(prisma.$kysely, topicId, q ?? '', includeDeleted).execute()
       return c.json({ posts: Number(res[0].count) })
+    },
+  )
+  .get(
+    'topics/:topicId/posts/:postId/page',
+    zValidator(
+      'query',
+      z.object({
+        pageSize: z.string().pipe(z.coerce.number()).pipe(z.int().positive().max(30)).default(10),
+      }),
+    ),
+    zValidator(
+      'param',
+      z.object({
+        topicId: z.string().pipe(z.coerce.number()).pipe(z.int()),
+        postId: z.string().pipe(z.coerce.number()).pipe(z.int()),
+      }),
+    ),
+    async (c) => {
+      const { pageSize } = c.req.valid('query')
+      const { topicId, postId } = c.req.valid('param')
+      const prisma = c.get('prismaKysely')
+      const authInfo = await ensureCanAccessTopic(c, topicId)
+      const includeDeleted = canSeeDeleted(authInfo)
+
+      const res = await getPostCountBeforeQuery(prisma.$kysely, topicId, postId, includeDeleted).execute()
+      const position = Number(res[0].count)
+      if (position === 0) {
+        return c.json({ error: 'not found' }, 404)
+      }
+
+      return c.json({ page: Math.ceil(position / pageSize) })
     },
   )
 

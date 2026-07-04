@@ -72,6 +72,16 @@ export function usePostsCount(topicId: Ref<number | string>, params: Ref<{ q?: s
   })
 }
 
+export function usePostPage(topicId: Ref<number | string>, postId: Ref<number | undefined>, pageSize: number) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ['api', 'topics', topicId, 'posts', postId, 'page', pageSize],
+    queryFn: ({ signal }) =>
+      api.get<{ page: number }>(`/api/topics/${topicId.value}/posts/${postId.value}/page`, { pageSize }, signal),
+    enabled: () => postId.value != null,
+  })
+}
+
 export function useVisitorMessages(userId: Ref<number | string>, params: Ref<{ pageSize: number; page: number }>) {
   const api = useApi()
   return useQuery({

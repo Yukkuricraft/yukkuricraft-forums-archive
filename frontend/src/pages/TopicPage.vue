@@ -30,9 +30,9 @@ import Pagination from '../components/AutoPagination.vue'
 import { pageFromPath } from '../util/pathUtils.ts'
 import ForumPost from '@/components/forum/ForumPost.vue'
 import { useTopicsStore } from '@/stores/topics.ts'
-import { useRouter, type RouteLocationRaw } from 'vue-router'
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import { NotFoundError } from '@/util/Api.ts'
-import useUnknownObject, { usePosts, usePostsCount, useTopic } from '@/composables/apiComposables.ts'
+import useUnknownObject, { usePostPage, usePosts, usePostsCount, useTopic } from '@/composables/apiComposables.ts'
 import { refDebounced } from '@vueuse/core'
 import type { TopicRoute } from '@/util/RouteTypes.ts'
 
@@ -133,4 +133,48 @@ watchEffect(async () => {
     await router.replace(actualRoute.value)
   }
 })
+
+const route = useRoute()
+
+// A ?p= permalink references a post by id. The post may live on a different page than
+// the one being viewed, so resolve its page and redirect there
+const targetPostId = computed(() => {
+  const p = route.query.p
+  const n = typeof p === 'string' ? Number(p) : NaN
+  return Number.isInteger(n) ? n : undefined
+})
+
+const postOnCurrentPage = computed(
+  () => targetPostId.value != null && Boolean(posts.value?.some((post) => post.id === targetPostId.value)),
+)
+
+// Only hit the backend once posts have loaded and the target isn't already on this page
+const postToResolve = computed(() =>
+  targetPostId.value != null && posts.value != null && !postOnCurrentPage.value ? targetPostId.value : undefined,
+)
+
+const { data: targetPostPage } = usePostPage(
+  computed(() => props.topicId),
+  postToResolve,
+  10,
+)
+
+watch(
+  [targetPostPage, postToResolve],
+  async ([resolved, toResolve]) => {
+    if (toResolve != null && resolved && resolved.page !== page.value) {
+      await router.replace({
+        name: 'posts',
+        params: {
+          ...props.routeParams,
+          topicId: props.topicId,
+          pageStr: resolved.page === 1 ? undefined : `page${resolved.page}`,
+        },
+        query: { p: String(toResolve) },
+        hash: `#post${toResolve}`,
+      })
+    }
+  },
+  { immediate: true },
+)
 </script>
