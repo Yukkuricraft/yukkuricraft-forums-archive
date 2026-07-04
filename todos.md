@@ -21,5 +21,4 @@
 
 # Nice to have
 
-- Toggleable signatures
 - Implement members sorting

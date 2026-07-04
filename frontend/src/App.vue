@@ -26,12 +26,18 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from './components/forum/ForumsNavbar.vue'
 import Footer from './components/YcFooter.vue'
 import { faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import YcBreadcrumbs from '@/components/YcBreadcrumbs.vue'
+import { useSettingsStore } from '@/stores/settings.ts'
 
 const route = useRoute()
+
+// Apply persisted viewer preferences only after hydration to avoid an SSR mismatch
+const settingsStore = useSettingsStore()
+onMounted(() => settingsStore.loadFromStorage())
 </script>

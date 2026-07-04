@@ -75,6 +75,10 @@
               <router-link class="navbar-item" v-if="activeUser.user" :to="{ name: 'private-messages' }"
                 >Private messages</router-link
               >
+              <label class="navbar-item">
+                <input v-model="settingsStore.showSignatures" type="checkbox" class="mr-2" />
+                Show signatures
+              </label>
               <a class="navbar-item" href="/signout">Sign out</a>
             </div>
           </div>
@@ -90,9 +94,12 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { useQuery } from '@tanstack/vue-query'
 import { NotFoundError, useApi } from '@/util/Api.ts'
 import type { User } from '@yukkuricraft-forums-archive/types/user'
+import { useSettingsStore } from '@/stores/settings.ts'
 
 const navbarExpanded = ref(false)
 const searchInput = ref('')
+
+const settingsStore = useSettingsStore()
 
 const api = useApi()
 const {

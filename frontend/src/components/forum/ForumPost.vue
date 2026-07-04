@@ -61,10 +61,12 @@
               <span v-if="post.postEditReason">Reason: {{ post.postEditReason }}</span>
             </i>
           </template>
-          <hr />
-          <div>
-            <ForumPostContent :content="creator?.signature ?? ''"></ForumPostContent>
-          </div>
+          <template v-if="settingsStore.showSignatures && creator?.signature">
+            <hr />
+            <div>
+              <ForumPostContent :content="creator.signature"></ForumPostContent>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -78,12 +80,14 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, onServerPrefetch } from 'vue'
 import UserLink from '@/components/UserLink.vue'
 import { useLocaleStore } from '@/stores/localization.ts'
+import { useSettingsStore } from '@/stores/settings.ts'
 import { useUser } from '@/composables/apiComposables.ts'
 import type { TopicRoute } from '@/util/RouteTypes.ts'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrashCan, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
 const localeStore = useLocaleStore()
+const settingsStore = useSettingsStore()
 
 const props = defineProps<{
   post: Post
