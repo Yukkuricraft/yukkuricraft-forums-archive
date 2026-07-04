@@ -17,6 +17,15 @@ export const topicIncludeRequest = {
       RedirectTo: {
         include: {
           LastPost: lastPostInclude,
+          Forum: {
+            select: {
+              FullSlug: {
+                select: {
+                  slug: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -132,6 +141,7 @@ export function makeOutTopic(
     redirectTo = {
       id: newTopic.id,
       forumId: newTopic.forumId,
+      forumSlug: newTopic.Forum.FullSlug?.slug ?? [],
       creatorId: newTopic.creatorId,
       createdAt: newTopic.createdAt,
       slug: newTopic.slug,

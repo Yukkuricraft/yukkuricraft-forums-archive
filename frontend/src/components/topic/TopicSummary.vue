@@ -23,14 +23,14 @@
 
         <div class="media-content">
           <div>
-            <router-link
-              :to="{
-                name: 'posts',
-                params: { ...routeParams, topic: topic.slug, topicId: topic.id },
-              }"
-              @click="topicStore.selectTopic(topic)"
-            >
+            <router-link :to="topicRoute" @click="onSelect">
               <h2 class="h4">
+                <FontAwesomeIcon
+                  v-if="isRedirect"
+                  :icon="faShareFromSquare"
+                  class="redirect-icon"
+                  title="This topic redirects to another topic"
+                />
                 <FontAwesomeIcon
                   v-if="hasPoll"
                   :icon="faSquarePollVertical"
@@ -101,7 +101,8 @@ import { useUser } from '@/composables/apiComposables.ts'
 import type { ForumRoute } from '@/util/RouteTypes.ts'
 import UserLink from '@/components/UserLink.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrashCan, faEyeSlash, faSquarePollVertical } from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faEyeSlash, faSquarePollVertical, faShareFromSquare } from '@fortawesome/free-solid-svg-icons'
+import type { RouteLocationRaw } from 'vue-router'
 
 const topicStore = useTopicsStore()
 const localeStore = useLocaleStore()
@@ -111,6 +112,29 @@ const props = defineProps<{ topic: Topic; routeParams: ForumRoute }>()
 const isDeleted = computed(() => Boolean(props.topic.deletedAt))
 const isHidden = computed(() => props.topic.hidden && !isDeleted.value)
 const hasPoll = computed(() => Boolean(props.topic.poll))
+const isRedirect = computed(() => Boolean(props.topic.redirectTo))
+
+const topicRoute = computed<RouteLocationRaw>(() => {
+  const redirectTo = props.topic.redirectTo
+  if (redirectTo) {
+    return {
+      name: 'posts',
+      params: { forumPath: redirectTo.forumSlug, topic: redirectTo.slug, topicId: redirectTo.id },
+    }
+  }
+
+  return {
+    name: 'posts',
+    params: { ...props.routeParams, topic: props.topic.slug, topicId: props.topic.id },
+  }
+})
+
+function onSelect() {
+  // Add to the topic store only for real topics. The redirect target is fetched fresh on the target page.
+  if (!isRedirect.value) {
+    topicStore.selectTopic(props.topic)
+  }
+}
 
 const { data: creator, suspense: creatorSuspense } = await useUser(computed(() => props.topic.creatorId))
 const { data: lastPostUser, suspense: lastPostUserSuspense } = await useUser(
@@ -124,7 +148,8 @@ onServerPrefetch(async () => {
 </script>
 
 <style scoped lang="scss">
-.poll-icon {
+.poll-icon,
+.redirect-icon {
   margin-right: 0.4em;
   color: var(--bulma-link);
   font-size: 0.85em;

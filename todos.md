@@ -5,7 +5,3 @@
 3. Test dockerization
 
 # Search for TODO and fix (Only if it's bad)
-
-# Topics
-
-- Topic redirects

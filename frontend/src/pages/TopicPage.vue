@@ -120,6 +120,19 @@ watchEffect(() => {
   }
 })
 
+// A redirect topic has no posts of its own. Navigating to it directly should forward to its target.
+const redirectRoute = computed<RouteLocationRaw | null>(() => {
+  const redirectTo = currentTopic.value?.redirectTo
+  if (redirectTo) {
+    return {
+      name: 'posts',
+      params: { forumPath: redirectTo.forumSlug, topic: redirectTo.slug, topicId: redirectTo.id },
+    }
+  }
+
+  return null
+})
+
 const actualTopicRoute = computed<RouteLocationRaw | null>(() => {
   if (!topicIsStale && currentTopic.value && currentTopic.value.slug !== props.routeParams.topic) {
     return {
@@ -149,8 +162,9 @@ const {
 const router = useRouter()
 
 watch(
-  actualTopicRoute,
-  async (v) => {
+  [redirectRoute, actualTopicRoute],
+  async ([redirect, actual]) => {
+    const v = redirect ?? actual
     if (v) {
       await router.replace(v)
     }
