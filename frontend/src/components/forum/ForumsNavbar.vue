@@ -52,6 +52,17 @@
               </div>
             </div>
           </div>
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link has-text-white" aria-label="Settings">
+              <FontAwesomeIcon :icon="faGear" />
+            </a>
+            <div class="navbar-dropdown is-right">
+              <label class="navbar-item">
+                <input v-model="settingsStore.showSignatures" type="checkbox" class="mr-2" />
+                Show signatures
+              </label>
+            </div>
+          </div>
           <a v-if="!activeUser && !activeUserLoading" class="navbar-item" href="/oauth/discord">Log in</a>
           <div v-else-if="activeUser" class="navbar-item has-dropdown is-hoverable">
             <a class="navbar-link has-text-white">
@@ -75,10 +86,6 @@
               <router-link class="navbar-item" v-if="activeUser.user" :to="{ name: 'private-messages' }"
                 >Private messages</router-link
               >
-              <label class="navbar-item">
-                <input v-model="settingsStore.showSignatures" type="checkbox" class="mr-2" />
-                Show signatures
-              </label>
               <a class="navbar-item" href="/signout">Sign out</a>
             </div>
           </div>
@@ -95,6 +102,8 @@ import { useQuery } from '@tanstack/vue-query'
 import { NotFoundError, useApi } from '@/util/Api.ts'
 import type { User } from '@yukkuricraft-forums-archive/types/user'
 import { useSettingsStore } from '@/stores/settings.ts'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faGear } from '@fortawesome/free-solid-svg-icons'
 
 const navbarExpanded = ref(false)
 const searchInput = ref('')
