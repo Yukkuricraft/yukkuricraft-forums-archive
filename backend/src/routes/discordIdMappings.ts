@@ -16,6 +16,4 @@ export default {
   '206892489833971712': 894, // Nucklearblt
   '193195158898999316': 212, // Redleaf
   '206905958838960128': 1134, // Purp
-
-  '975881964093575260': NaN, // Dan
 } as Record<string, number>

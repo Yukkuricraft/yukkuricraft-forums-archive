@@ -67,7 +67,7 @@ const app = new Hono()
   .use(compress())
   .use(requestId())
   .use(secureHeaders({ strictTransportSecurity: false }))
-  .use(timeout(30_000))
+  //.use(timeout(30_000))
 
 app.route('/api', forumRoutes)
 app.route('/api', topicRoutes)
