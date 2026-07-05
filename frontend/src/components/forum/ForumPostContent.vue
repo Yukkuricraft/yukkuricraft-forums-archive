@@ -12,10 +12,12 @@ const props = defineProps<{
 const lines = computed(() => props.content.split('\n').slice(1))
 
 onErrorCaptured((hook, target) => {
-  console.log('ERROR', hook, target)
-  console.log(lines.value)
-  console.log(props.content)
-  //console.log(bbcode(props.content, [customPreset(), lineBreakPlugin()]))
+  // eslint-disable-next-line turbo/no-undeclared-env-vars -- import.meta.env.DEV is a Vite built-in, not an env var
+  if (import.meta.env.DEV) {
+    console.log('ERROR', hook, target)
+    console.log(lines.value)
+    console.log(props.content)
+  }
   return false
 })
 </script>

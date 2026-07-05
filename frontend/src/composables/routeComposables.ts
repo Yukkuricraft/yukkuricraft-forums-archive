@@ -1,5 +1,5 @@
 import { useRouteQuery } from '@vueuse/router'
-import { type MaybeRef, type Ref, type MaybeRefOrGetter } from 'vue'
+import { type MaybeRef, type Ref, type MaybeRefOrGetter, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import z from 'zod'
 
@@ -37,7 +37,19 @@ export function useSchemaRouteQuery<T extends z.ZodType>(
           v = Number(v)
         }
 
-        return schema.parse(v)
+        const res = schema.safeParse(v)
+        if (res.success) {
+          return res.data
+        }
+
+        if (defaultValue !== undefined) {
+          const fallback = schema.safeParse(toValue(defaultValue))
+          if (fallback.success) {
+            return fallback.data
+          }
+        }
+
+        throw res.error
       },
       set(v) {
         return stringify(v)

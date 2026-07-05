@@ -10,6 +10,7 @@ import { discordIdToUserId, discordIdAdmins, discordIdStaff } from './discordIdM
 import { getSignedCookie, setSignedCookie, deleteCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 import { makeOutTopic, topicIncludeRequest } from '@yukkuricraft-forums-archive/types/topic'
+import { userSelect } from '@yukkuricraft-forums-archive/types/user'
 import { topicOrder } from './topic.js'
 
 const discord = new Discord(
@@ -20,11 +21,20 @@ const discord = new Discord(
 
 const app = new Hono()
 app
-  .get('oauth/discord', (c) => {
+  .get('oauth/discord', async (c) => {
     const state = generateState()
     const scopes = ['identify', 'email']
     const url = discord.createAuthorizationURL(state, null, scopes)
     url.searchParams.append('prompt', 'none')
+
+    await setSignedCookie(c, 'OAUTH_STATE', state, getenv('COOKIE_SECRET'), {
+      secure: true,
+      httpOnly: true,
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: 60 * 10,
+    })
+
     return c.redirect(url)
   })
   .get(
@@ -37,8 +47,14 @@ app
       }),
     ),
     async (c) => {
-      const { code } = c.req.valid('query')
+      const { code, state } = c.req.valid('query')
       const prisma: PrismaClient = c.get('prisma')
+
+      const storedState = await getSignedCookie(c, getenv('COOKIE_SECRET'), 'OAUTH_STATE')
+      deleteCookie(c, 'OAUTH_STATE')
+      if (!storedState || storedState !== state) {
+        throw new HTTPException(400, { message: 'Invalid OAuth state' })
+      }
 
       let tokens
       try {
@@ -63,22 +79,33 @@ app
       const discordUser = (await discordResponse.json()) as {
         id: string
         email: string
+        verified?: boolean
         global_name?: string
         username: string
       }
+
+      // Only trust the Discord email to link a forum account if Discord has verified it; otherwise an
+      // attacker could set an unverified email to any victim's address and hijack their account. The
+      // hardcoded ID mapping is admin-maintained and trusted regardless.
+      const matchConditions = []
+      if (discordUser.verified && discordUser.email) {
+        matchConditions.push({ email: discordUser.email })
+      }
       const mapping = discordIdToUserId[discordUser.id]
-      const user = await prisma.user.findFirst({
-        select: {
-          id: true,
-          name: true,
-        },
-        where:
-          mapping && !isNaN(mapping)
-            ? {
-                OR: [{ email: discordUser.email }, { id: mapping }],
-              }
-            : { email: discordUser.email },
-      })
+      if (mapping && !isNaN(mapping)) {
+        matchConditions.push({ id: mapping })
+      }
+
+      const user =
+        matchConditions.length > 0
+          ? await prisma.user.findFirst({
+              select: {
+                id: true,
+                name: true,
+              },
+              where: { OR: matchConditions },
+            })
+          : null
 
       await setSignedCookie(
         c,
@@ -119,14 +146,7 @@ app
     const user = await prisma.user.findUnique({
       relationLoadStrategy: 'join',
       where: { id: authInfo.userId },
-      include: {
-        UserGroup: {
-          select: {
-            userTitle: true,
-            color: true,
-          },
-        },
-      },
+      select: userSelect,
     })
 
     return c.json({ discordName: authInfo.discordName, user, isAdmin: authInfo.isAdmin, isStaff: authInfo.isStaff })

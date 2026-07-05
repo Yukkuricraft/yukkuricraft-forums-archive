@@ -24,7 +24,12 @@ export const searchJsonObj = z.object({
   title_only: z.boolean().optional(),
   author: z.array(z.string()).optional(),
   starter_only: z.boolean().optional(),
-  date: z.object({ from: z.date().optional(), to: z.date().optional() }).optional(),
+  date: z
+    .object({
+      from: z.null().or(z.coerce.date()).optional(),
+      to: z.null().or(z.coerce.date()).optional(),
+    })
+    .optional(),
   sort: z
     .object({
       relevance: zOrd,

@@ -46,6 +46,13 @@ function trimItemContent(content: NodeContent[]): NodeContent[] {
   return content.slice(start, end)
 }
 
+function safeCssValue(value: string | undefined | null): string | undefined {
+  if (value == null || value === '') {
+    return undefined
+  }
+  return /^[#a-zA-Z0-9(),.%\s-]+$/.test(value) ? value : undefined
+}
+
 function validateUrl(urlStr: string): string | undefined {
   try {
     const url = new URL(urlStr)
@@ -319,7 +326,16 @@ export const customPreset = vuePreset.extend((defTags) => ({
     ...node,
     attrs: {
       style: {
-        fontFamily: attr(node.attrs) ?? undefined,
+        fontFamily: safeCssValue(attr(node.attrs)),
+      },
+    },
+    tag: 'span',
+  }),
+  color: (node) => ({
+    ...node,
+    attrs: {
+      style: {
+        color: safeCssValue((node.attrs?.color as string | undefined) ?? attr(node.attrs)),
       },
     },
     tag: 'span',

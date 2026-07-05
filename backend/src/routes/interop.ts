@@ -16,7 +16,6 @@ const app = new Hono()
     const prisma: PrismaClient = c.get('prisma')
 
     const obj = Object.entries(c.req.query())
-    console.log(obj)
     if (obj.length === 0) {
       return c.notFound()
     }

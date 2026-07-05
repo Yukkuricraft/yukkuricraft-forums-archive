@@ -49,7 +49,12 @@ const searchJsonObj = z.object({
   title_only: z.boolean().optional(),
   author: z.array(z.string()).optional(),
   starter_only: z.boolean().optional(),
-  date: z.object({ from: z.date().or(z.null()).optional(), to: z.date().or(z.null()).optional() }).optional(),
+  date: z
+    .object({
+      from: z.null().or(z.coerce.date()).optional(),
+      to: z.null().or(z.coerce.date()).optional(),
+    })
+    .optional(),
   sort: z
     .object({
       relevance: zOrd,
@@ -69,7 +74,7 @@ const searchJson: Ref<SearchJsonObj> = useSchemaRouteQuery(
   'searchJSON',
   zJson.pipe(searchJsonObj),
   (v) => JSON.stringify(v),
-  computed(() => `{"keywords": "${q.value}"}`),
+  computed(() => JSON.stringify({ keywords: q.value })),
   {
     mode: 'replace',
   },

@@ -11,6 +11,13 @@ import { languageDetector } from 'hono/language'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+function serializeStateForScript(value: string): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+}
+
 const app = new Hono<{ Bindings: HttpBindings }>().use(
   languageDetector({
     fallbackLanguage: 'en',
@@ -131,16 +138,22 @@ async function handle(c: Context) {
     const baseTemplate = await template(c.req.path)
 
     const stateScript = `<script id="pinia-state">
-  window.__PINIA_STATE__ = ${JSON.stringify(rendered.piniaState)}
-  window.__QUERY_CLIENT_STATE__ = ${JSON.stringify(rendered.queryClientState)}
+  window.__PINIA_STATE__ = ${serializeStateForScript(rendered.piniaState)}
+  window.__QUERY_CLIENT_STATE__ = ${serializeStateForScript(rendered.queryClientState)}
  </script>`
 
+    // Use function replacements so `$&`, `$\``, `$'`, `$$` in the rendered content (which embeds
+    // arbitrary post text) are inserted literally rather than interpreted as replacement patterns.
     const reqTemplate = baseTemplate
-      .replace('<!--preload-links-->', rendered.preloadLinks ?? '')
-      .replace('<!--app-html-->', rendered.html ?? '')
-      .replace('<!--state-script-->', stateScript ?? '')
+      .replace('<!--preload-links-->', () => rendered.preloadLinks ?? '')
+      .replace('<!--app-html-->', () => rendered.html ?? '')
+      .replace('<!--state-script-->', () => stateScript ?? '')
 
     const templateWithHead = transformHtmlTemplate(rendered.head, reqTemplate)
+
+    if (/(?:^|;\s*)AUTH=/.test(cookieHeader ?? '')) {
+      c.header('Cache-Control', 'private, no-store')
+    }
 
     return c.html(templateWithHead, 200)
   } catch (e) {
