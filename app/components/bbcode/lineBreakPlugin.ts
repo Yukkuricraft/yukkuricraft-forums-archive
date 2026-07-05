@@ -33,7 +33,7 @@ const walkNode = (t: NodeContent): NodeContent | NodeContent[] => {
   const tree = t
 
   if (tree && isObj(tree) && tree.content) {
-    if ((tree as any).disableLineBreakConversion) {
+    if ((tree as { disableLineBreakConversion?: boolean }).disableLineBreakConversion) {
       // stop walk. children won't be parsed to have <br>
       return tree
     }

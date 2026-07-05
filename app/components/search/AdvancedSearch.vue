@@ -189,7 +189,7 @@ import { computed, onServerPrefetch, ref, watch } from 'vue'
 
 import type { ForumTree } from '#shared/types/forum'
 import { useRootForums } from '@/composables/apiComposables.js'
-import type { SearchJsonObj } from '~/pages/search.vue'
+import type { SearchJsonObj } from '@/util/searchSchema.js'
 
 const { data: rootForums, suspense } = useRootForums()
 

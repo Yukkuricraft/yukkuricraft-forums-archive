@@ -10,8 +10,8 @@ export interface AuthInfo {
   isStaff: boolean
 }
 
-// The AuthInfo is stored as the nuxt-auth-utils session `user`.
 declare module '#auth-utils' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface User extends AuthInfo {}
 }
 

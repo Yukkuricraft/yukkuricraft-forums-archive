@@ -137,8 +137,8 @@ function onSelect() {
   }
 }
 
-const { data: creator, suspense: creatorSuspense } = await useUser(computed(() => props.topic.creatorId))
-const { data: lastPostUser, suspense: lastPostUserSuspense } = await useUser(
+const { data: creator, suspense: creatorSuspense } = useUser(computed(() => props.topic.creatorId))
+const { data: lastPostUser, suspense: lastPostUserSuspense } = useUser(
   computed(() => props.topic.lastPostSummary.userId),
 )
 

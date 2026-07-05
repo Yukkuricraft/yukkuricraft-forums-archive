@@ -3,16 +3,27 @@ import { sendRedirect } from 'h3'
 import type { AuthInfo } from '#server/utils/auth'
 import { prisma } from '#server/utils/db'
 import { discordIdToUserId, discordIdAdmins, discordIdStaff } from '#server/utils/discordIds'
+import z from 'zod'
+
+const discordUserSchema = z.object({
+  id: z.string(),
+  verified: z.boolean(),
+  email: z.string().nullish(),
+  global_name: z.string().nullable(),
+  username: z.string(),
+})
 
 export default defineOAuthDiscordEventHandler({
   config: {
     scope: ['identify', 'email'],
     authorizationParams: { prompt: 'none' },
   },
-  async onSuccess(event, { user: discordUser }) {
+  async onSuccess(event, { user: rawDiscordUser }) {
+    const discordUser = discordUserSchema.parse(rawDiscordUser)
+
     const matchConditions = []
     if (discordUser.verified && discordUser.email) {
-      matchConditions.push({ email: discordUser.email as string })
+      matchConditions.push({ email: discordUser.email })
     }
     const mapping = discordIdToUserId[discordUser.id]
     if (mapping && !isNaN(mapping)) {

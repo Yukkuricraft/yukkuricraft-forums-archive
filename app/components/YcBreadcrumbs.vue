@@ -51,7 +51,7 @@ const breadcrumpItems = computed<{ text: string; to: RouteLocationRaw; key: stri
     const userIdName = path.shift()
     if (!userIdName) return res
 
-    const [id, name] = userIdName?.split('-')
+    const [id, name] = userIdName.split('-')
 
     res.push({
       text: decodeURIComponent(name) ?? decodeURIComponent(userIdName),

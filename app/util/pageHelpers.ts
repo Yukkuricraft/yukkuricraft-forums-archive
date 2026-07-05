@@ -17,12 +17,12 @@ export function makeMeta({
   image?: string | Ref<string>
   url: string | Ref<string> | null
 }): UseHeadInput {
-  const calcFullUrl = (url: string | Ref<string>) =>
-    (isRef(url) ? url.value : url).startsWith('http')
+  const calcFullUrl = (url: string | Ref<string>) => computed(() => {
+    const urlVal = toValue(url)
+    return urlVal.startsWith('http')
       ? url
-      : isRef(url)
-        ? computed(() => 'https://forumsarchive.yukkuricraft.net/' + url.value)
-        : 'https://forumsarchive.yukkuricraft.net/' + url
+      : `https://forumsarchive.yukkuricraft.net/${urlVal}`
+  })
 
   const usedImage = isRef(image) ? computed(() => image.value ?? faviconUpscaled) : (image ?? faviconUpscaled)
 

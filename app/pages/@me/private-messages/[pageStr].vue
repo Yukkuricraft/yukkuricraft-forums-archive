@@ -1,19 +1,21 @@
 <template>
-  <h1>Private Messages</h1>
+  <div>
+    <h1>Private Messages</h1>
 
-  <LoadingOverlay :active="isFetching">
-    <TopicSummary v-for="topic in topics" :key="'topic-' + topic.title" :route-params="routeParams" :topic="topic" />
+    <LoadingOverlay :active="isFetching">
+      <TopicSummary v-for="topic in topics" :key="'topic-' + topic.title" :route-params="routeParams" :topic="topic" />
 
-    <p v-if="topics && topics.length === 0 && !isFetching" class="has-text-grey">You have no private messages.</p>
+      <p v-if="topics && topics.length === 0 && !isFetching" class="has-text-grey">You have no private messages.</p>
 
-    <Pagination
-      v-if="privateMessagesCount"
-      :current-page="page"
-      :page-count="pageCount(privateMessagesCount.count, 10)"
-      :link-gen="pageLinkGen"
-      :shown-pages="9"
-    />
-  </LoadingOverlay>
+      <Pagination
+        v-if="privateMessagesCount"
+        :current-page="page"
+        :page-count="pageCount(privateMessagesCount.count, 10)"
+        :link-gen="pageLinkGen"
+        :shown-pages="9"
+      />
+    </LoadingOverlay>
+  </div>
 </template>
 
 <script setup lang="ts">

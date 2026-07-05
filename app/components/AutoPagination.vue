@@ -100,11 +100,11 @@ const shownMiddlePages = computed(() => {
 
     if (i > 100) {
       throw new Error(
-        `Pagination could not calculate pages to show ${{
+        `Pagination could not calculate pages to show ${JSON.stringify({
           prevPage,
           nextPage,
           middleShownPages: middleShownPages.value,
-        }}`,
+        })}`,
       )
     }
   }

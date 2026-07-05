@@ -4,7 +4,6 @@
 </template>
 
 <script setup lang="ts">
-import { useHead } from '@unhead/vue'
 import { computed, onServerPrefetch, watchEffect } from 'vue'
 
 import ForumPage from '~/components/forum/ForumPage.vue'

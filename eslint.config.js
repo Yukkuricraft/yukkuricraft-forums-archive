@@ -22,7 +22,9 @@ export default withNuxt(
     files: ['**/*.ts', '**/*.tsx', '**/*.vue'],
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['prisma.config.ts'],
+        },
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: ['.vue'],
       },
@@ -30,12 +32,20 @@ export default withNuxt(
     rules: {
       ...typeCheckedRules,
       '@typescript-eslint/only-throw-error': 'error',
+      '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }],
     },
   },
   {
+    files: ['server/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: ['./.nuxt/tsconfig.server.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     // Server handlers pass Zod's `schema.parse` as a callback to h3 validators.
     // `parse` doesn't use `this`, so unbound-method only produces false positives here.
-    files: ['server/**/*.ts'],
     rules: {
       '@typescript-eslint/unbound-method': 'off',
     },

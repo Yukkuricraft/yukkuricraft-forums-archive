@@ -10,7 +10,7 @@
       />
     </div>
     <div class="media-content" style="width: 80%">
-      <p>
+      <div>
         <UserLink :user="creator ?? null" /> <span v-if="post.id === post.topic.id">started a topic </span
         ><span v-else>replied to </span>
         <strong>
@@ -19,7 +19,6 @@
             :to="{
               name: 'posts',
               params: {
-                sectionSlug: sectionSlug,
                 forumPath,
                 topicId: post.topic.id,
                 topic: post.topic.slug,
@@ -41,7 +40,7 @@
           <span v-if="hideContent">Show more</span>
           <span v-else>Show less</span>
         </button>
-      </p>
+      </div>
     </div>
 
     <div class="media-right">
@@ -73,16 +72,7 @@ const { data: creator, suspense } = useUser(computed(() => props.post.creatorId)
 
 onServerPrefetch(suspense)
 
-const sectionSlug = computed(() => {
-  const slug = props.post.topic.forum.slug ?? []
-  if (slug.length < 2) return ''
-  return slug[1]
-})
-
-const forumPath = computed(() => {
-  const slug = props.post.topic.forum.slug ?? []
-  return slug.slice(2)
-})
+const forumPath = computed(() => props.post.topic.forum.slug ?? [])
 
 const postPage = computed(() => {
   if (props.post.idx === null) return undefined

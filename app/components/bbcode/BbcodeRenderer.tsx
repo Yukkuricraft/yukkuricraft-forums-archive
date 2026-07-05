@@ -81,7 +81,7 @@ export const customPreset = vuePreset.extend((defTags) => ({
   video: (node) => ({
     ...node,
     attrs: Object.fromEntries(
-      Object.entries(node.attrs ?? {}).map(([k, v]) => (k.includes(';') ? k.split(';') : [k, v])),
+      Object.entries(node.attrs ?? {}).map(([k, v]) => k.includes(';') ? (k.split(';') as [string, string]) : [k, v]),
     ),
     content: '',
     tag: BbcodeVideo,
@@ -91,7 +91,8 @@ export const customPreset = vuePreset.extend((defTags) => ({
     attrs: {
       style: {
         fontSize: (() => {
-          const sizeAttr = node.attrs?.size ?? attr(node.attrs) ?? ''
+          const rawSize = node.attrs?.size ?? attr(node.attrs)
+          const sizeAttr = typeof rawSize === 'string' || typeof rawSize === 'number' ? rawSize : ''
           if (sizeAttr === '') {
             return undefined
           }
@@ -393,7 +394,12 @@ export const customPreset = vuePreset.extend((defTags) => ({
       attrs: (() => {
         const attributes = attr(node.attrs)
         const attrArr = attributes?.split(', ') ?? []
-        const attrObj = Object.fromEntries(attrArr.map((a) => a.split(': ', 2)))
+        const attrObj = Object.fromEntries(
+          attrArr.map((a) => {
+            const [k, v] = a.split(': ', 2)
+            return [k, v ?? '']
+          }),
+        )
 
         return {
           style: {
@@ -427,12 +433,12 @@ export const customPreset = vuePreset.extend((defTags) => ({
       return { content: '', attrs: {}, tag: 'span' }
     }
 
-    const json = JSON.parse(jsonStr)
+    const json = JSON.parse(jsonStr) as { src?: string; width?: string; height?: string }
 
     return {
       content: '',
       attrs: {
-        src: validateUrl(json.src),
+        src: json.src != null ? validateUrl(json.src) : undefined,
         style: {
           width: json.width,
           height: json.height,
@@ -517,7 +523,7 @@ function unparseTree(tree: TagNodeObject): string {
   })
 
   const strAttrs = Object.entries(tree.attrs ?? {})
-    .map(([k, v]) => (k === v ? k : `${k}=${v}`))
+    .map(([k, v]) => (k === v ? k : `${k}=${typeof v === 'string' ? v : ''}`))
     .join(' ')
   const strAttr = strAttrs.length ? '=' + strAttrs : ''
 
@@ -527,7 +533,7 @@ function unparseTree(tree: TagNodeObject): string {
 function lowercaseTags() {
   return (tree: BBobCoreTagNodeTree) =>
     tree.walk((content) => {
-      if (content && typeof content === 'object') {
+      if (content && typeof content === 'object' && typeof content.tag === 'string') {
         return {
           ...content,
           tag: content.tag.toLowerCase(),
@@ -540,7 +546,7 @@ function sanitizePlugin(allowedTags: (string | Component)[]): BBobPluginFunction
   return (tree: BBobCoreTagNodeTree) =>
     tree.walk((content) => {
       if (content && typeof content === 'object') {
-        if (!allowedTags.includes(content.tag)) {
+        if (!allowedTags.includes(content.tag as string | Component)) {
           const innerContent = content.content
           const arrContent =
             innerContent === undefined ? [] : Array.isArray(innerContent) ? innerContent : [innerContent]
