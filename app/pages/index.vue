@@ -16,21 +16,18 @@
 import { onServerPrefetch } from 'vue'
 
 import { useForumForums } from '@/composables/apiComposables.js'
+import { useStandardHead } from '~/util/pageHelpers'
 
 import ForumSection from '../components/forum/ForumSection.vue'
-import { makeMeta } from '../util/pageHelpers.js'
 
 const { data: forumForums, suspense } = useForumForums()
 
 onServerPrefetch(suspense)
 
-useHead(
-  makeMeta({
-    title: 'Yukkuricraft forums archive',
-    description: 'The Yukkuricraft forums archive.',
-    url: '',
-  }),
-)
+useStandardHead({
+  description: 'The Yukkuricraft forums archive.',
+  url: '',
+})
 
 definePageMeta({ name: 'home' })
 </script>

@@ -15,4 +15,8 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useStandardHead } from '~/util/pageHelpers'
+
+useStandardHead({ title: 'About', url: '/about', description: 'An archive of the Yukkuricraft forums.' })
+</script>

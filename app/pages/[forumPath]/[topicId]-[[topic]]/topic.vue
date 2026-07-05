@@ -49,6 +49,7 @@ import TopicTags from '~/components/topic/TopicTags.vue'
 import useUnknownObject, { usePostPage, usePosts, usePostsCount, useTopic } from '~/composables/apiComposables.js'
 import { useAppErrorStore } from '~/stores/appError.js'
 import { useTopicsStore } from '~/stores/topics.js'
+import { useStandardHead } from '~/util/pageHelpers'
 import { pageFromPath } from '~/util/pathUtils'
 import type { TopicRoute } from '~/util/RouteTypes.js'
 
@@ -57,6 +58,7 @@ import Pagination from '../../../components/AutoPagination.vue'
 const props = defineProps<{
   routeParams: TopicRoute
   topicId: string
+  topic: string
   pageStr?: string
 }>()
 const search = ref('')
@@ -240,6 +242,13 @@ function arr(str: string | string[]): string[] {
   return Array.isArray(str) ? str : [str]
 }
 
+useStandardHead({
+  title: () => `${currentTopic.value?.title}`,
+  url: () =>
+    `/${props.routeParams.forumPath.join('/')}/${props.topicId}-${props.topic}${props.pageStr ? `/${props.pageStr}` : ''}`,
+  description: () => '',
+})
+
 definePageMeta({
   path: `/:forumPath((?!page\\d+\\)(?!member\\)[^/]+)+/:topicId(\\d+)-:topic?/:pageStr(page\\d+)?`,
   name: 'posts',
@@ -249,6 +258,7 @@ definePageMeta({
       topic: first(route.params.topic),
     } satisfies TopicRoute,
     topicId: route.params.topicId,
+    topic: route.params.topic,
     pageStr: route.params.pageStr,
   }),
 })

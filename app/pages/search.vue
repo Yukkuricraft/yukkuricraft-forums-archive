@@ -20,6 +20,7 @@ import AdvancedSearch from '@/components/search/AdvancedSearch.vue'
 import SearchResult from '@/components/search/SearchResult.vue'
 import { useSchemaRouteQuery } from '@/composables/routeComposables.js'
 import { searchJsonObj, type SearchJsonObj, zJson } from '@/util/searchSchema.js'
+import { useStandardHead } from '~/util/pageHelpers'
 
 const q = useSchemaRouteQuery('q', z.string(), (v) => v, '')
 const advSearch = useRouteQuery<string, boolean>('AdvSearch', undefined, {
@@ -42,4 +43,6 @@ const searchJson: Ref<SearchJsonObj> = useSchemaRouteQuery(
     mode: 'replace',
   },
 )
+
+useStandardHead({ title: 'Search', url: '/search', description: 'Search the Yukkuricraft forums archive.' })
 </script>

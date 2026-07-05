@@ -1,64 +1,64 @@
 import type { UseHeadInput } from '@unhead/vue'
-import type { Ref } from 'vue'
+import type { UseSeoMetaInput } from '@unhead/vue/types'
 import { computed, isRef } from 'vue'
 
 import faviconUpscaledI from '../favicon_upscaled.png'
+import type { MaybeRefOrGetter } from '@vue/reactivity'
 
 export const faviconUpscaled = faviconUpscaledI
 
-export function makeMeta({
-  title,
-  description,
-  image,
-  url,
-}: {
-  title: string | Ref<string>
-  description: string | Ref<string>
-  image?: string | Ref<string>
-  url: string | Ref<string> | null
-}): UseHeadInput {
-  const calcFullUrl = (url: string | Ref<string>) => computed(() => {
-    const urlVal = toValue(url)
-    return urlVal.startsWith('http')
-      ? url
-      : `https://forumsarchive.yukkuricraft.net/${urlVal}`
-  })
+interface MakeMetaOptions {
+  title?: MaybeRefOrGetter<string>
+  description: MaybeRefOrGetter<string>
+  image?: MaybeRefOrGetter<string>
+  url: MaybeRefOrGetter<string> | null
+}
 
+function calcFullUrl(url: MaybeRefOrGetter<string>) {
+  return computed(() => {
+    let urlVal = toValue(url)
+    if (urlVal === '') {
+      urlVal += '/'
+    }
+
+    return urlVal.startsWith('http') ? urlVal : `https://forumsarchive.yukkuricraft.net${urlVal}`
+  })
+}
+
+export function makeSeoMeta({ title, description, image, url }: MakeMetaOptions): UseSeoMetaInput {
   const usedImage = isRef(image) ? computed(() => image.value ?? faviconUpscaled) : (image ?? faviconUpscaled)
 
-  const meta = [
-    {
-      property: 'description',
-      content: description,
-    },
-    {
-      property: 'og:title',
-      content: title,
-    },
-    {
-      property: 'og:image',
-      content: usedImage,
-    },
-  ]
+  const fullTitle = computed(() => {
+    const titleVal = toValue(title)
+    return titleVal ? `Yukkuricraft Forums Archive - ${titleVal}` : 'Yukkuricraft Forums Archive'
+  })
 
+  return {
+    title: fullTitle,
+    ogTitle: fullTitle,
+    description,
+    ogDescription: description,
+    ogUrl: url && calcFullUrl(url),
+    ogImage: usedImage,
+  }
+}
+
+export function makeMeta({ url }: MakeMetaOptions): UseHeadInput {
   const link = []
 
   if (url) {
-    const fullUrl = calcFullUrl(url)
-    meta.push({
-      property: 'og:url',
-      content: fullUrl,
-    })
-
     link.push({
       rel: 'canonical' as const,
-      href: fullUrl,
+      href: calcFullUrl(url),
     })
   }
 
   return {
-    title,
-    meta,
     link,
   }
+}
+
+export function useStandardHead(options: MakeMetaOptions) {
+  useHead(makeMeta(options))
+  useSeoMeta(makeSeoMeta(options))
 }

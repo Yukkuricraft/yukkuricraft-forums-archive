@@ -10,7 +10,7 @@ import ForumPage from '~/components/forum/ForumPage.vue'
 import ForumSection from '~/components/forum/ForumSection.vue'
 import { useRootForums, useTopics } from '~/composables/apiComposables.js'
 import { useAppErrorStore } from '~/stores/appError.js'
-import { makeMeta } from '~/util/pageHelpers.js'
+import { makeMeta, useStandardHead } from '~/util/pageHelpers.js'
 import { pageFromPath } from '~/util/pathUtils.js'
 import type { ForumRoute } from '~/util/RouteTypes.js'
 
@@ -64,13 +64,11 @@ onServerPrefetch(async () => {
   }
 })
 
-useHead(
-  makeMeta({
-    title: computed(() => `Yukkuricraft forums archive - ${forum.value?.title ?? ''}`),
-    description: computed(() => forum.value?.description ?? ''),
-    url: computed(() => `/${props.routeParams.forumPath.join('/')}`),
-  }),
-)
+useStandardHead({
+  title: () => `Yukkuricraft forums archive - ${forum.value?.title ?? ''}`,
+  description: () => forum.value?.description ?? '',
+  url: () => `/${props.routeParams.forumPath.join('/')}`,
+})
 
 function arr(str: string | string[]): string[] {
   return Array.isArray(str) ? str : [str]

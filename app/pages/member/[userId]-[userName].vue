@@ -60,6 +60,7 @@ import { useUser } from '~/composables/apiComposables.js'
 import { useSchemaRouteQuery } from '~/composables/routeComposables.js'
 import { useLocaleStore } from '~/stores/localization.js'
 import { decodeHtmlEntities } from '~/util/htmlEntities.js'
+import { useStandardHead } from '~/util/pageHelpers'
 
 const props = defineProps<{
   userId: string
@@ -86,6 +87,12 @@ const { data: user, suspense: userSuspense } = useUser(computed(() => parseInt(p
 onServerPrefetch(userSuspense)
 
 const localeStore = useLocaleStore()
+
+useStandardHead({
+  title: () => props.userName,
+  url: () => `/member/${props.userId}-${props.userName}`,
+  description: () => `User profile for ${props.userName}`,
+})
 
 definePageMeta({ name: 'user', props: true })
 </script>

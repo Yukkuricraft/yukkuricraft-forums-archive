@@ -27,6 +27,7 @@ import LoadingOverlay from '~/components/LoadingOverlay.vue'
 import TopicSummary from '~/components/topic/TopicSummary.vue'
 import { useActiveUser, usePrivateMessages, usePrivateMessagesCount } from '~/composables/apiComposables.js'
 import type { TopicsOrderingRequestParams } from '~/stores/topics.js'
+import { useStandardHead } from '~/util/pageHelpers'
 import { pageCount, pageFromPath } from '~/util/pathUtils.js'
 
 const props = defineProps<{
@@ -73,5 +74,11 @@ definePageMeta({
   name: 'private-messages',
   path: '/@me/private-messages/:pageStr(page\\d+)?',
   props: true,
+})
+
+useStandardHead({
+  title: 'Private messages',
+  url: () => `/@me/private-messages${props.pageStr ? `/${props.pageStr}` : ''}`,
+  description: 'See your past private messages',
 })
 </script>

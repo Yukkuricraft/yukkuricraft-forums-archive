@@ -97,7 +97,7 @@ export function getUserVisitorMessagesQuery(kysely: Kysely<DB>, userId: number, 
       'peh.createdAt as postEditCreatedAt',
       'peh.reason as postEditReason',
     ])
-    .orderBy('p.id desc')
+    .orderBy('p.id', 'desc')
     .limit(limit)
     .offset(offset)
 }
