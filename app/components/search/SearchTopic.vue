@@ -1,0 +1,38 @@
+<template>
+  <TopicSummary :topic="convertedTopic" :route-params="{ forumPath: props.topic.forum.slug ?? [] }" />
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+import type { SearchTopic as SearchTopicType } from '#shared/types/search'
+import type { Topic } from '#shared/types/topic'
+import TopicSummary from '@/components/topic/TopicSummary.vue'
+
+const props = defineProps<{ topic: SearchTopicType }>()
+
+const convertedTopic = computed<Topic>(() => {
+  const t = props.topic
+  return {
+    id: t.id,
+    forumId: t.forum.id ?? 1,
+    creatorId: t.creatorId,
+    createdAt: t.createdAt,
+    slug: t.slug,
+    title: t.title,
+    sticky: false,
+    deletedAt: null,
+    hidden: false,
+    postCount: t.postCount,
+    redirectTo: undefined,
+    lastPostSummary: {
+      postId: t.lastPost.id ?? undefined,
+      at: t.lastPost.createdAt ?? undefined,
+      userId: t.lastPost.creatorId,
+    },
+    recipients: [],
+    tags: [],
+    poll: null,
+  } satisfies Topic
+})
+</script>

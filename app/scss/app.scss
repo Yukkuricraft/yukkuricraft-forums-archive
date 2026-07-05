@@ -1,0 +1,114 @@
+$yukkuricraft-primary: #e56a00;
+
+@use 'bulma/sass/index' with (
+  $primary: $yukkuricraft-primary,
+  $body-font-size: 1.2rem,
+  $title-weight: var(--bulma-weight-bold),
+  $footer-padding: 3rem 1.5rem 3rem
+);
+
+@use 'bulma/sass/utilities/mixins';
+
+html {
+  scroll-behavior: smooth;
+  min-height: 100%;
+}
+
+#__nuxt {
+  height: 100vh;
+}
+
+.byline {
+  color: hsl(0, 0%, 60%);
+  font-size: 0.9rem;
+  p {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.yc-footer {
+  text-align: center;
+  font-size: 1rem;
+}
+
+#version {
+  float: right;
+}
+
+@media (max-width: 576px) {
+  .smaller-sm-text {
+    font-size: 75%;
+  }
+}
+
+// Widen the container past Bulma's fullhd cap.
+// The :not() chain out-specifies Bulma's own container rules.
+.container.is-wide:not(.is-max-tablet):not(.is-max-desktop):not(.is-max-widescreen) {
+  @include mixins.desktop {
+    max-width: min(100% - 3rem, 1600px);
+  }
+}
+
+.container-error {
+  margin-top: 5%;
+  text-align: center;
+  img {
+    display: block;
+    margin: 0 auto;
+  }
+}
+
+.card.is-deleted,
+.card.is-hidden {
+  border-left: 4px solid;
+}
+
+.card.is-deleted {
+  border-left-color: var(--bulma-danger);
+  background-color: color-mix(in srgb, var(--bulma-danger) 10%, var(--bulma-card-background-color));
+}
+
+.card.is-hidden {
+  border-left-color: var(--bulma-warning);
+  background-color: color-mix(in srgb, var(--bulma-warning) 12%, var(--bulma-card-background-color));
+}
+
+.state-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--bulma-border-weak);
+  font-weight: var(--bulma-weight-bold);
+}
+
+.state-notice.is-compact {
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: var(--bulma-weight-semibold);
+}
+
+.state-notice.is-deleted {
+  color: var(--bulma-danger-on-scheme);
+}
+
+.state-notice.is-hidden {
+  color: var(--bulma-warning-on-scheme);
+}
+
+.site {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-content {
+  flex: 1;
+}

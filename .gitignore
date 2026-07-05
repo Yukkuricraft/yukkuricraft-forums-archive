@@ -10,11 +10,7 @@ node_modules/
 !.yarn/sdks
 !.yarn/versions
 
-.turbo
-backend/logs
-
 dist
-frontend/distserver
 
 # env
 .env
@@ -25,10 +21,8 @@ frontend/distserver
 
 .vscode
 
-#Scala
-.scala-build
-
 # misc
 .DS_Store
 
-frontend/distserver
+generated
+.nuxt
