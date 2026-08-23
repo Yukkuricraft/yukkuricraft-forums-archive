@@ -1,0 +1,100 @@
+name: yc-forums-archive
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: images/app/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Overrides anything in .env — db is only reachable on the compose network.
+      DB_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      # Loopback only. TLS and public routing belong to an external proxy.
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # $$ escapes compose interpolation so the shell inside the container expands it.
+      # -h 127.0.0.1 forces a TCP probe. Without it, pg_isready connects over the
+      # Unix socket, which the postgres entrypoint's temporary init server brings up
+      # before TCP is listening — a probe landing in that window would report
+      # healthy while `migrate`'s first `psql -h db` still gets connection-refused.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Ephemeral source database. Exists only while a migration is running.
+  # Credentials are fixed literals on purpose: this container is never
+  # published, lives for minutes, and holds data that is about to be public.
+  mysql-src:
+    profiles: [migrate]
+    image: ${MYSQL_IMAGE:-mysql:5.7}
+    # mysql:5.7 has no arm64 image; pin to amd64 so this also runs under
+    # emulation on Apple Silicon hosts. No-op on amd64 production hosts.
+    platform: linux/amd64
+    command:
+      # Empty sql_mode lets the legacy zero-dates survive the restore.
+      - --sql-mode=
+      - --max-allowed-packet=256M
+    environment:
+      MYSQL_ROOT_PASSWORD: migrate
+      MYSQL_DATABASE: yc_forum_archive
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pmigrate", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+
+  migrate:
+    profiles: [migrate]
+    build:
+      context: .
+      dockerfile: images/migrate/Dockerfile
+    # google/cloud-sdk:slim is amd64-only. Service-level `platform` covers both
+    # the build and the run; there is no `build.platform` key in the Compose
+    # spec (the build section takes plural `platforms`, a list).
+    platform: linux/amd64
+    restart: "no"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      GCS_DUMP_URL: ${GCS_DUMP_URL:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/secrets/sa.json}
+      MIGRATE_FORCE: ${MIGRATE_FORCE:-}
+      KEEP_RAW_SCHEMA: ${KEEP_RAW_SCHEMA:-}
+    volumes:
+      # Directories, not files: a directory mount is a no-op when empty, so the
+      # same compose file works with or without a local dump or a GCS key.
+      - ${DUMP_DIR:-./.dump}:/source:ro
+      - ${SECRETS_DIR:-./.secrets}:/secrets:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      mysql-src:
+        condition: service_healthy
+
+volumes:
+  pgdata:

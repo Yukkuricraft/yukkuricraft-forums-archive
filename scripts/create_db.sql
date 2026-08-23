@@ -1,13 +1,8 @@
--- Before loading into Postgres from MySQL, run these queries on the MySQL db.
--- The SET is needed because the legacy data contains zero-dates (0000-00-00)
--- that strict sql_mode rejects; it also lets the ALTER keep those values so the
--- following UPDATE can null them out. YEAR(...) < 1900 avoids the invalid
--- '1900-00-00' date literal that strict mode would otherwise reject.
+-- Runs against Postgres AFTER pgloader has loaded the raw vBulletin tables into
+-- the yc_forum_archive schema.
 --
--- SET SESSION sql_mode = '';
--- ALTER TABLE `user` MODIFY COLUMN birthday_search DATE NULL;
--- UPDATE `user` SET birthday_search = NULL
---   WHERE birthday_search = '0000-00-00' OR YEAR(birthday_search) < 1900;
+-- The MySQL-side preparation that used to be documented here now lives in
+-- scripts/mysql_prepare.sql, which scripts/migrate.sh runs before pgloader.
 
 --Conversion script based on the Discourse VB5 import script
 CREATE TABLE user_group
@@ -326,7 +321,7 @@ CREATE TABLE post_poll
     multiple BOOLEAN NOT NULL
 );
 INSERT INTO post_poll (post_id, multiple)
-SELECT p.nodeid, p.multiple::BOOLEAN
+SELECT p.nodeid, p.multiple::INT::BOOLEAN
 FROM yc_forum_archive.poll p;
 
 CREATE TABLE post_poll_option

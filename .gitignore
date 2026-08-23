@@ -26,3 +26,9 @@ dist
 
 generated
 .nuxt
+
+# Migration inputs — dumps and service account keys never belong in git
+.dump/*
+!.dump/.gitkeep
+.secrets/*
+!.secrets/.gitkeep
