@@ -11,9 +11,11 @@ services:
     environment:
       # Overrides anything in .env — db is only reachable on the compose network.
       DB_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      VIRTUAL_HOST: ${FORUM_ARCHIVES_HOST}
+      VIRTUAL_PORT: 3000
+      LETSENCRYPT_HOST: ${FORUM_ARCHIVES_HOST}
     ports:
-      # Loopback only. TLS and public routing belong to an external proxy.
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${FORUM_ARCHIVES_PORT}:3000"
     depends_on:
       db:
         condition: service_healthy
@@ -23,6 +25,8 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+    networks:
+      - yukkuricraft_yc-web-dev
 
   db:
     image: postgres:17-alpine
@@ -44,6 +48,8 @@ services:
       timeout: 5s
       retries: 12
       start_period: 10s
+    networks:
+      - yukkuricraft_yc-web-dev
 
   # Ephemeral source database. Exists only while a migration is running.
   # Credentials are fixed literals on purpose: this container is never
@@ -66,6 +72,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 24
+    networks:
+      - yukkuricraft_yc-web-dev
 
   migrate:
     profiles: [migrate]
@@ -95,6 +103,12 @@ services:
         condition: service_healthy
       mysql-src:
         condition: service_healthy
+    networks:
+      - yukkuricraft_yc-web-dev
 
 volumes:
   pgdata:
+
+networks:
+  yukkuricraft_yc-web-dev:
+    external: true

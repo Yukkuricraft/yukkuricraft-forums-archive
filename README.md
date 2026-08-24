@@ -121,3 +121,9 @@ yarn dev
 ```
 
 `yarn lint`, `yarn check-types` and `yarn format` before committing.
+
+## Reverse Proxy
+
+The `docker-compose.yaml` file currently uses an external network.
+The external network is the primary Yukkuricraft network with reverse proxy support.
+If running locally, eg for development, you will need to adjust those values.
