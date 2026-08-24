@@ -1,0 +1,5 @@
+LOAD DATABASE
+		FROM mysql://root:migrate@mysql-src/yc_forum_archive
+		INTO ${PG_TARGET_URL}
+
+	WITH prefetch rows = 500, batch rows = 500, max parallel create index = 1;

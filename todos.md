@@ -2,4 +2,3 @@
 
 1. Test permissions (manual browser testing)
 2. Add spinners where missing
-3. Test dockerization
