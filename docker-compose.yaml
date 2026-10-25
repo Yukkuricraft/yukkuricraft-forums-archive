@@ -29,7 +29,7 @@ services:
       - yukkuricraft_yc-web-dev
 
   db:
-    image: postgres:17-alpine
+    image: postgres:17.11-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

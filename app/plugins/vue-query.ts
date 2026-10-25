@@ -1,6 +1,5 @@
 import { QueryClient, VueQueryPlugin, hydrate, dehydrate, QueryCache } from '@tanstack/vue-query'
 import { FetchError } from 'ofetch'
-import type { Pinia } from 'pinia'
 
 import { useAppErrorStore } from '@/stores/appError.js'
 
@@ -9,7 +8,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     queryCache: new QueryCache({
       onError: (error) => {
         if (error instanceof FetchError && error.status === 403) {
-          useAppErrorStore(nuxtApp.$pinia as Pinia).setStatus(error.status)
+          useAppErrorStore(nuxtApp.$pinia).setStatus(error.status)
         }
       },
     }),
